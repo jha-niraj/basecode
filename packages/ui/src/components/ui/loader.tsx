@@ -1,36 +1,43 @@
-"use client"
+"use client";
 
-import { DotmSquare11 } from "./dotm-square-11"
+import { Spinner } from "./spinner";
 
-export function PageLoader({ label }: { label?: string }) {
-    return (
-        <div
-            style={{
-                minHeight: "100vh",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 16,
-            }}
-        >
-            <DotmSquare11 size={36} dotSize={5} speed={1.2} />
-            {label && (
-                <p
-                    style={{
-                        fontSize: 13,
-                        fontFamily: "var(--font-geist-mono, monospace)",
-                        letterSpacing: "0.08em",
-                        opacity: 0.4,
-                    }}
-                >
-                    {label}
-                </p>
-            )}
-        </div>
-    )
+interface LoaderProps {
+    /** Visual size in px (default 32) */
+    size?: number;
+    /** Dot size in px (default 4) */
+    dotSize?: number;
+    /** Optional wrapper className */
+    className?: string;
+    /** Aria label (default "Loading") */
+    label?: string;
 }
 
-export function InlineLoader({ size = 16 }: { size?: number }) {
-    return <DotmSquare11 size={size} dotSize={Math.max(2, Math.round(size / 6))} speed={1.2} />
+/** Full-page centred loader */
+export function PageLoader({ label = "Loading" }: { label?: string }) {
+    return (
+        <div className="flex min-h-screen items-center justify-center bg-white dark:bg-neutral-950">
+            <Spinner className="size-8 text-neutral-500 dark:text-neutral-400" aria-label={label} />
+        </div>
+    );
+}
+
+/** Centred loader for a section/card (not full page) */
+export function SectionLoader({ label = "Loading" }: { label?: string }) {
+    return (
+        <div className="flex h-40 w-full items-center justify-center">
+            <Spinner className="size-6 text-neutral-500 dark:text-neutral-400" aria-label={label} />
+        </div>
+    );
+}
+
+/** kept for basecode apps - inline loader sized in px, drawn with the house Spinner (dotSize is accepted and unused). */
+export function InlineLoader({ size = 32, className, label = "Loading" }: LoaderProps) {
+    return (
+        <Spinner
+            className={className ?? "text-neutral-500 dark:text-neutral-400"}
+            style={{ width: size, height: size }}
+            aria-label={label}
+        />
+    );
 }
