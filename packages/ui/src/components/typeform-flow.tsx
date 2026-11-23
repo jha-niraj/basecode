@@ -58,7 +58,7 @@ export interface FlowStep {
 	 *  and do not force the pane to scroll. Applies to single_choice / multiple_choice only. */
 	columns?: 1 | 2
 	/** For a "country_phone" step: the id of a "location" step whose selected country
-	 *  pre-fills the phone's dial code, so the student does not have to re-pick it. */
+	 *  pre-fills the phone's dial code, so the person does not have to re-pick it. */
 	countrySourceStepId?: string
 	/** Short label shown in the side-panel step list. Falls back to `question`. */
 	navLabel?: string
@@ -96,8 +96,8 @@ export interface TypeformFlowProps {
 	steps: FlowStep[]
 	onSubmit: (answers: Record<string, unknown>) => Promise<void> | void
 	onStepChange?: (stepId: string, answers: Record<string, unknown>) => void
-	/** Pre-populate the answers map (e.g. editing an existing profile, or a school-assigned
-	 *  grade). Read once when the flow opens; changes afterwards don't re-seed a live flow. */
+	/** Pre-populate the answers map (e.g. editing an existing profile, or an admin-assigned
+	 *  value). Read once when the flow opens; changes afterwards don't re-seed a live flow. */
 	initialAnswers?: Record<string, unknown>
 	title?: string
 	submitLabel?: string
@@ -1098,7 +1098,7 @@ function StepContent({
 	}
 
 	if (step.type === "country_phone") {
-		// Pre-fill the dial code from the country the student already picked in the
+		// Pre-fill the dial code from the country the person already picked in the
 		// linked location step. PhoneInput reads defaultCountry on mount,
 		// and this step is always reached AFTER the location step, so the country is set.
 		const src = step.countrySourceStepId

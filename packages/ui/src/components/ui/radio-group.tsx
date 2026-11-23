@@ -6,7 +6,7 @@ import * as RadioGroupPrimitive from "@radix-ui/react-radio-group"
 import { cn } from "../../lib/utils"
 
 /**
- * The shadcn radio group (plan/repo/ui/shadcn-controls-and-emails-2026-10-20.md): a native
+ * The shadcn radio group: a native
  * `<input type="radio">` renders the operating system's own dot and ignores the app's ink. Same
  * focus ring and sizing as `checkbox.tsx` beside it, so the two read as one family.
  */

@@ -36,7 +36,7 @@ const MAX_PIXELS = 1280 * 720
  * - Respects prefers-reduced-motion (freezes animation).
  * - Base color paints instantly (SSR / before WebGL mounts) so there's no flash.
  * - PERFORMANCE: the WebGL canvas is only mounted while the section is on (or near) screen, and its
- *   resolution is capped (`maxPixelCount`) — so off-screen sections cost nothing and no single
+ *   resolution is capped (`maxPixelCount`) - so off-screen sections cost nothing and no single
  *   canvas burns the GPU at full 4K. This is what keeps multi-section pages smooth.
  */
 export function ShaderHeroBg({
@@ -68,7 +68,7 @@ export function ShaderHeroBg({
         if (typeof IntersectionObserver === "undefined") { setActive(true); return }
         const io = new IntersectionObserver(
             (entries) => { for (const e of entries) setActive(e.isIntersecting) },
-            // Mount a bit before it scrolls in and unmount once well past — avoids churn on scroll.
+            // Mount a bit before it scrolls in and unmount once well past - avoids churn on scroll.
             { rootMargin: "300px 0px" },
         )
         io.observe(el)

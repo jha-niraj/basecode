@@ -24,7 +24,7 @@ export interface NavTreeNode {
     meta?: ReactNode;
     /** Switched off / not in use: drawn dimmed, never hidden. */
     dim?: boolean;
-    /** Extra text the filter matches on (a code, a teacher's name) besides `name`. */
+    /** Extra text the filter matches on (a code, an owner's name) besides `name`. */
     searchText?: string;
 }
 

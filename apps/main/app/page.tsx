@@ -1,111 +1,69 @@
-import Link from 'next/link'
+import { ArrowRight, KeyRound, MessagesSquare, ShieldCheck } from "lucide-react"
+import { SITE } from "@repo/core/site"
+import { AppLink } from "@repo/ui/components/app-link"
+import { Button } from "@repo/ui/components/ui/button"
 
-const Logomark = ({ size = 28 }: { size?: number }) => (
-    <svg width={size} height={size} viewBox="0 0 32 32" fill="none">
-        <circle cx="16" cy="16" r="14" stroke="currentColor" strokeWidth="1.2" opacity="0.25" />
-        <circle cx="16" cy="16" r="9" stroke="currentColor" strokeWidth="1.2" opacity="0.5" />
-        <circle cx="16" cy="16" r="3.5" fill="currentColor" />
-        <circle cx="28" cy="16" r="2" fill="currentColor" opacity="0.6" />
-    </svg>
-)
-
-const MAX_W = 1280
+/**
+ * The public landing - minimal and neutral on purpose: a clone replaces it with its own. Static (no session read), so
+ * it renders from the edge cache; the middleware sends a signed-in visitor from /signin straight to /ai.
+ */
+const POINTS = [
+    { icon: MessagesSquare, title: "An AI workspace", body: "A full-page chat with questions and confirmations in a side column." },
+    { icon: KeyRound, title: "Sign-in that works", body: "Email and password, Google, and one-time email codes." },
+    { icon: ShieldCheck, title: "An admin console", body: "Team, access, users, audit log and system settings." },
+]
 
 export default function LandingPage() {
     return (
-        <div style={{ minHeight: '100vh', background: 'var(--so-bg)', color: 'var(--so-ink)', fontFamily: 'inherit' }}>
+        <div className="flex min-h-dvh flex-col bg-white text-neutral-900 dark:bg-[#121314] dark:text-neutral-100">
+            <header className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4 sm:px-6">
+                <AppLink href="/" className="flex cursor-pointer items-center gap-2.5 rounded-lg">
+                    <span aria-hidden className="flex h-7 w-7 items-center justify-center rounded-lg bg-neutral-900 text-xs font-semibold text-white dark:bg-white dark:text-neutral-900">
+                        {SITE.name.slice(0, 1)}
+                    </span>
+                    <span className="text-sm font-semibold">{SITE.name}</span>
+                </AppLink>
+                <nav className="flex items-center gap-2">
+                    <Button asChild variant="ghost" size="sm" className="cursor-pointer rounded-xl">
+                        <AppLink href="/signin">Sign in</AppLink>
+                    </Button>
+                    <Button asChild size="sm" className="cursor-pointer rounded-xl">
+                        <AppLink href="/signup">Get started</AppLink>
+                    </Button>
+                </nav>
+            </header>
 
-            {/* Nav */}
-            <nav style={{ borderBottom: '1px solid var(--so-line)', padding: '0 clamp(24px,5vw,80px)', height: 60, display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'var(--so-bg)', position: 'sticky', top: 0, zIndex: 10, backdropFilter: 'blur(8px)' }}>
-                <div style={{ maxWidth: MAX_W, margin: '0 auto', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <Link href="/" style={{ display: 'inline-flex', alignItems: 'center', gap: 10, fontSize: 16, fontWeight: 500, letterSpacing: '-0.015em', color: 'var(--so-ink)', textDecoration: 'none' }}>
-                        <Logomark size={24} />
-                        <span>YourApp</span>
-                    </Link>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                        <Link href="/signin" style={{ fontSize: 14, color: 'var(--so-ink-2)', textDecoration: 'none', padding: '0 12px', height: 36, display: 'inline-flex', alignItems: 'center', borderRadius: 8 }}>
-                            Sign in
-                        </Link>
-                        <Link href="/signup" style={{ fontSize: 14, fontWeight: 500, color: 'var(--so-bg)', background: 'var(--so-ink)', textDecoration: 'none', padding: '0 16px', height: 36, display: 'inline-flex', alignItems: 'center', borderRadius: 999 }}>
-                            Get started
-                        </Link>
+            <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col justify-center px-4 py-16 sm:px-6">
+                <div className="max-w-2xl">
+                    <h1 className="text-4xl font-semibold tracking-tight">{SITE.tagline}</h1>
+                    <p className="mt-4 text-base leading-7 text-neutral-600 dark:text-neutral-400">{SITE.description}</p>
+                    <div className="mt-8 flex flex-col gap-2 sm:flex-row">
+                        <Button asChild className="h-11 cursor-pointer gap-2 rounded-xl px-5">
+                            <AppLink href="/signup">Get started <ArrowRight className="h-4 w-4" /></AppLink>
+                        </Button>
+                        <Button asChild variant="outline" className="h-11 cursor-pointer rounded-xl px-5">
+                            <AppLink href="/signin">I have an account</AppLink>
+                        </Button>
                     </div>
                 </div>
-            </nav>
 
-            {/* Hero */}
-            <section style={{ padding: 'clamp(80px,10vw,140px) clamp(24px,5vw,80px)' }}>
-                <div style={{ maxWidth: MAX_W, margin: '0 auto', textAlign: 'center' }}>
-                    {/* Badge - neutral, no green */}
-                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '5px 14px', background: 'var(--so-bg-2)', border: '1px solid var(--so-line)', borderRadius: 999, fontSize: 12, fontWeight: 500, color: 'var(--so-ink-3)', letterSpacing: '0.04em', marginBottom: 32 }}>
-                        <span style={{ width: 5, height: 5, borderRadius: 999, background: 'var(--so-ink-3)', display: 'inline-block' }} />
-                        Now in beta
-                    </div>
-                    <h1 style={{ fontSize: 'clamp(44px,6vw,80px)', fontWeight: 450, lineHeight: 1.02, letterSpacing: '-0.035em', color: 'var(--so-ink)', margin: '0 0 24px', maxWidth: '14ch', marginLeft: 'auto', marginRight: 'auto' }}>
-                        Build your product,{' '}
-                        <span style={{ color: 'var(--so-ink-2)' }}>not your auth.</span>
-                    </h1>
-                    <p style={{ fontSize: 'clamp(16px,1.8vw,20px)', color: 'var(--so-ink-3)', maxWidth: '52ch', margin: '0 auto 48px', lineHeight: 1.6 }}>
-                        A production-ready starter with authentication, database, and admin panel - so you can focus on what makes your product unique.
-                    </p>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, justifyContent: 'center' }}>
-                        <Link href="/signup" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, height: 52, padding: '0 28px', background: 'var(--so-ink)', color: 'var(--so-bg)', borderRadius: 999, fontSize: 15, fontWeight: 500, textDecoration: 'none', letterSpacing: '-0.01em' }}>
-                            Start for free
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m9 18 6-6-6-6" /></svg>
-                        </Link>
-                        <Link href="/signin" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, height: 52, padding: '0 28px', background: 'transparent', color: 'var(--so-ink)', border: '1px solid var(--so-line)', borderRadius: 999, fontSize: 15, fontWeight: 500, textDecoration: 'none' }}>
-                            Sign in
-                        </Link>
-                    </div>
-                </div>
-            </section>
+                <ul className="mt-16 grid gap-3 sm:grid-cols-3">
+                    {POINTS.map(({ icon: Icon, title, body }) => (
+                        <li key={title} className="rounded-xl bg-white p-4 shadow-[0_1px_2px_rgba(0,0,0,0.05)] ring-1 ring-black/[0.04] dark:bg-neutral-900 dark:ring-white/[0.06]">
+                            <Icon className="h-5 w-5 text-neutral-500 dark:text-neutral-400" />
+                            <h2 className="mt-3 text-base font-semibold">{title}</h2>
+                            <p className="mt-1 text-sm text-neutral-600 dark:text-neutral-400">{body}</p>
+                        </li>
+                    ))}
+                </ul>
+            </main>
 
-            {/* Feature grid */}
-            <section style={{ padding: 'clamp(48px,6vw,96px) clamp(24px,5vw,80px)' }}>
-                <div style={{ maxWidth: MAX_W, margin: '0 auto' }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 1, background: 'var(--so-line)', border: '1px solid var(--so-line)', borderRadius: 16, overflow: 'hidden' }}>
-                        {[
-                            { icon: '🔐', title: 'Auth out of the box', desc: 'Email + password, Google OAuth, password reset, email verification - all wired up.' },
-                            { icon: '🗄️', title: 'Typed database layer', desc: 'Drizzle ORM with PostgreSQL. Schema, client, and migrations ready to go.' },
-                            { icon: '🛡️', title: 'Route protection', desc: 'Middleware guards protected routes. Redirect to sign-in, redirect back after.' },
-                            { icon: '✉️', title: 'Transactional email', desc: 'Resend integration for reset password and verification emails.' },
-                            { icon: '⚡', title: 'Next.js 15 + Turborepo', desc: 'App Router, server components, monorepo structure - all set up correctly.' },
-                            { icon: '🎨', title: 'Design system included', desc: 'Shadcn/ui components, Tailwind v4, and a clean auth design system ready to customize.' },
-                        ].map(f => (
-                            <div key={f.title} style={{ padding: '32px 28px', background: 'var(--so-bg)' }}>
-                                <div style={{ fontSize: 28, marginBottom: 16 }}>{f.icon}</div>
-                                <h3 style={{ fontSize: 16, fontWeight: 500, color: 'var(--so-ink)', margin: '0 0 8px', letterSpacing: '-0.01em' }}>{f.title}</h3>
-                                <p style={{ fontSize: 14, color: 'var(--so-ink-3)', lineHeight: 1.6, margin: 0 }}>{f.desc}</p>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </section>
-
-            {/* CTA */}
-            <section style={{ padding: 'clamp(48px,6vw,96px) clamp(24px,5vw,80px)' }}>
-                <div style={{ maxWidth: MAX_W, margin: '0 auto', textAlign: 'center' }}>
-                    <div style={{ padding: 'clamp(48px,5vw,80px)', background: 'var(--so-bg-2)', border: '1px solid var(--so-line)', borderRadius: 20 }}>
-                        <h2 style={{ fontSize: 'clamp(32px,3.6vw,48px)', fontWeight: 450, letterSpacing: '-0.028em', color: 'var(--so-ink)', margin: '0 0 16px' }}>Ready to ship?</h2>
-                        <p style={{ fontSize: 16, color: 'var(--so-ink-3)', margin: '0 0 36px' }}>Create an account and be up and running in minutes.</p>
-                        <Link href="/signup" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, height: 50, padding: '0 28px', background: 'var(--so-ink)', color: 'var(--so-bg)', borderRadius: 999, fontSize: 15, fontWeight: 500, textDecoration: 'none' }}>
-                            Get started for free
-                        </Link>
-                    </div>
-                </div>
-            </section>
-
-            {/* Footer */}
-            <footer style={{ borderTop: '1px solid var(--so-line)', padding: 'clamp(24px,3vw,40px) clamp(24px,5vw,80px)' }}>
-                <div style={{ maxWidth: MAX_W, margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--so-ink-4)', fontSize: 13 }}>
-                        <Logomark size={18} />
-                        <span>YourApp</span>
-                    </div>
-                    <p style={{ fontSize: 13, color: 'var(--so-ink-4)', margin: 0 }}>
-                        Built with the base code starter.
-                    </p>
-                </div>
+            <footer className="mx-auto flex w-full max-w-6xl flex-col gap-2 px-4 py-6 text-xs text-neutral-600 sm:flex-row sm:items-center sm:justify-between sm:px-6 dark:text-neutral-400">
+                <span>{SITE.name}</span>
+                <span className="flex gap-4">
+                    <AppLink href="/terms" className="cursor-pointer hover:text-neutral-900 dark:hover:text-white">Terms</AppLink>
+                    <AppLink href="/privacy" className="cursor-pointer hover:text-neutral-900 dark:hover:text-white">Privacy</AppLink>
+                </span>
             </footer>
         </div>
     )

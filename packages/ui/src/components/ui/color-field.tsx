@@ -19,11 +19,11 @@ import {
 import { cn } from '../../lib/utils';
 
 /**
- * THE colour setting field, for every app (plan/repo/ui/reui-components-2026-10-23.md 2.6): the report builder, the
- * ID card designer and anything else a school colours. A ColorPicker popover: saturation area, hue, hex field, the
+ * THE colour setting field, for every app: a report builder, a
+ * card designer and anything else a user colours. A ColorPicker popover: saturation area, hue, hex field, the
  * caller's presets, the last six colours picked (one list per `recentKey`), a contrast-on-white check and a reset.
  * The trigger follows every drag; `onChange` only fires when an interaction ends (`onValueCommit`), so a live
- * preview is not redrawn on every pointer move. A colour a school picks is DATA, so any hex is allowed; the chrome
+ * preview is not redrawn on every pointer move. A colour a user picks is DATA, so any hex is allowed; the chrome
  * stays neutral.
  */
 

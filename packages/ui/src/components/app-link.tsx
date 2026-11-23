@@ -9,8 +9,8 @@ import { useRouter } from "next/navigation"
 import { PrefetchKind } from "next/dist/client/components/router-reducer/router-reducer-types"
 
 /**
- * THE link (navigation-speed playbook section 5; plan/repo/speed/fast-sign-in-and-navigation.md).
- * `next/link` is imported nowhere else in the staff, admin and student apps - a lint rule enforces it.
+ * THE link (navigation-speed playbook section 5).
+ * `next/link` is imported nowhere else in the apps - a lint rule enforces it.
  *
  *   prefetchOn="intent" (the only mode) - every link, the sidebars' included. Next's viewport
  *     prefetch is OFF; a SHELL prefetch fires once the pointer has moved inside the link for 100ms

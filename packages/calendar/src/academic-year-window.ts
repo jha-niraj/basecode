@@ -1,8 +1,8 @@
-// The academic year as a window of time, worked out from a school's start month and calendar - the pure rule shared
-// by apps/main (`getSchoolAcademicYearWindow`) and the academic_years seed script (plan configure-review D4).
+// The academic year as a window of time, worked out from a tenant's start month and calendar - the pure rule shared
+// by apps/main (`getSchoolAcademicYearWindow`) and the academic_years seed script.
 import { getAdDateFromBs, getBsPartsFromAd, type SchoolCalendarSystem } from './calendar-system';
 
-/** Nepal time, UTC+05:45 - a year starts at the school's local midnight. */
+/** Nepal time, UTC+05:45 - a year starts at the tenant's local midnight. */
 const NPT_MS = (5 * 60 + 45) * 60_000;
 
 export interface ComputedAcademicYearWindow {
@@ -17,7 +17,7 @@ export interface ComputedAcademicYearWindow {
 }
 
 /**
- * The year that contains `now`: from the 1st of the start month (default April) to a year later - or, for a BS school
+ * The year that contains `now`: from the 1st of the start month (default April) to a year later - or, for a BS tenant
  * on the Nepali session (the April default), from 1 Baisakh to the next 1 Baisakh.
  */
 export function computeAcademicYearWindow(

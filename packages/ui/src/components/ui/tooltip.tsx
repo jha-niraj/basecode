@@ -6,7 +6,7 @@ import * as TooltipPrimitive from "@radix-ui/react-tooltip"
 import { cn } from "../../lib/utils"
 import { POPPER_MOTION, POPPER_ORIGIN } from "../../lib/motion"
 
-// Manual pass R7-2 (Niraj, 2026-10-20): a tooltip closes the moment the pointer leaves its trigger. Radix's default
+// Manual pass R7-2 (the owner, 2026-10-20): a tooltip closes the moment the pointer leaves its trigger. Radix's default
 // keeps it open while the pointer travels onto the tip ("hoverable content"), which left tips hanging over the next
 // control. Both the provider and the root default to closing; a caller can still opt back in.
 function TooltipProvider({ disableHoverableContent = true, ...props }: React.ComponentProps<typeof TooltipPrimitive.Provider>) {
@@ -14,7 +14,7 @@ function TooltipProvider({ disableHoverableContent = true, ...props }: React.Com
 }
 
 // Every Tooltip brings its own provider (the shadcn v4 shape). Without one, a Tooltip on a page whose tree has no
-// TooltipProvider threw "`Tooltip` must be used within `TooltipProvider`" and took the whole page down (Niraj hit it
+// TooltipProvider threw "`Tooltip` must be used within `TooltipProvider`" and took the whole page down (the owner hit it
 // on /configure/paymentmethods, 2026-10-20). A provider higher up still sets the shared delay for its children.
 function Tooltip({ disableHoverableContent = true, delayDuration, ...props }: React.ComponentProps<typeof TooltipPrimitive.Root>) {
     return (

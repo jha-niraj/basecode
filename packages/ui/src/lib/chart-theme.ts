@@ -1,10 +1,10 @@
 /**
  * Shared chart theme - the single source of truth for every recharts surface
- * across main, student, and admin.
+ * across main and admin.
  *
  * Two palettes, picked by series count:
  *
- *   1 series  -> CHART_MONO. Neutral grey, matching the /whygurukul marketing
+ *   1 series  -> CHART_MONO. Neutral grey, matching an earlier project's marketing
  *                charts. One series needs no hue: the title already names it,
  *                so colour would only add noise.
  *   2+ series -> CHART_SERIES. A fixed categorical order.
@@ -85,15 +85,15 @@ export function seriesColor(index: number): string {
 }
 
 /**
- * Single-series charts: neutral grey, no hue. The /whygurukul look.
+ * Single-series charts: neutral grey, no hue. The marketing-chart look.
  *
- * NOT whygurukul's literal hexes. That page is dark-only, so it can afford
+ * NOT that marketing page's literal hexes. That page is dark-only, so it can afford
  * #d4d4d4 (13.4:1 on its near-black card). On a white dashboard card the same
  * grey is 1.48:1 - effectively invisible. These are the lightest greys that
  * clear 3:1 against BOTH card surfaces (#ffffff and #0a0a0a), so they keep the
  * quiet grey character without disappearing in light mode.
  *
- * The mark is a step darker than the line, mirroring whygurukul's own
+ * The mark is a step darker than the line, mirroring that page's own
  * line-vs-dot relationship.
  */
 export const CHART_MONO = {

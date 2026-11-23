@@ -11,11 +11,11 @@ import { ScrollArea } from "./scroll-area";
  * a segmented field you can TYPE into (hh : mm am/pm, each segment a spinbutton - digits, ArrowUp/Down, a/p,
  * ArrowLeft/Right between segments, Backspace clears when `clearable`), plus a clock button opening a popover with
  * optional quick times, hour / minute / am-pm columns, and Now / Clear / Done. Replaces the browser's native time
- * input, which looks different in every browser (Niraj, 2026-10-20).
+ * input, which looks different in every browser (the owner, 2026-10-20).
  *
  * VALUE contract is the native input's: 24h "HH:mm", "" when unset - so a caller swaps
  * `<input type="time" value onChange={e => set(e.target.value)}>` for `<TimePicker value onChange={set}>` without
- * changing what it stores. The LABEL is 12h ("11:59 pm") by default, as the school reads it; `hourCycle={24}` for
+ * changing what it stores. The LABEL is 12h ("11:59 pm") by default, as most people read it; `hourCycle={24}` for
  * a 24h display. A stored value off the minute step or outside min/max is shown as is and never rewritten until
  * someone edits it; edits (typing, arrows, picks, Now) snap to the step and clamp into min/max.
  */
@@ -78,7 +78,7 @@ export function formatTime12(value?: string): string {
 }
 
 /**
- * The half of the day an hour typed into an EMPTY field means, for a school: 6-11 morning, 12-5 afternoon.
+ * The half of the day an hour typed into an EMPTY field means, for most people: 6-11 morning, 12-5 afternoon.
  * Without it typing "2" would land on 2 am.
  */
 function inferPm(h12: number): boolean {
@@ -158,6 +158,7 @@ export function TimePicker({
 }: TimePickerProps) {
 	const [open, setOpen] = useState(false);
 	const segRefs = useRef<Record<Seg, HTMLSpanElement | null>>({ hour: null, minute: null, period: null });
+	const fieldRef = useRef<HTMLDivElement>(null);
 	const typed = useRef<{ seg: Seg | null; text: string; at: number }>({ seg: null, text: "", at: 0 });
 
 	const is12 = hourCycle !== 24;
@@ -331,6 +332,9 @@ export function TimePicker({
 			e.preventDefault();
 			focusSeg("hour");
 		}
+		// A press ANYWHERE on the field opens the columns, not only the clock (the owner, 2026-11-06). Typing still works: the
+		// popover does not take focus. The clock button toggles on its own click, so it is left to do that.
+		if (!(e.target instanceof Element && e.target.closest("button"))) setOpen(true);
 	};
 
 	const quick = (quickTimes ?? []).filter((q) => {
@@ -342,6 +346,7 @@ export function TimePicker({
 		<Popover open={open} onOpenChange={setOpen}>
 			<PopoverAnchor asChild>
 				<div
+					ref={fieldRef}
 					role="group"
 					aria-label={rest["aria-label"] ?? "Time"}
 					title={current === null ? placeholder : formatTime12(value)}
@@ -376,7 +381,13 @@ export function TimePicker({
 					</span>
 				</div>
 			</PopoverAnchor>
-			<PopoverContent align="start" className="w-[256px] rounded-2xl p-2" onOpenAutoFocus={(e) => e.preventDefault()}>
+			<PopoverContent
+				align="start"
+				className="w-[256px] rounded-2xl p-2"
+				onOpenAutoFocus={(e) => e.preventDefault()}
+				// The field is outside the popover but part of it: a press or the focus landing on a segment must not close it.
+				onInteractOutside={(e) => { if (e.target instanceof Node && fieldRef.current?.contains(e.target)) e.preventDefault(); }}
+			>
 				{quick.length > 0 && (
 					<div className="mb-2 border-b border-neutral-200 pb-2 dark:border-neutral-800">
 						<span className="px-1 text-xs font-semibold uppercase tracking-[0.12em] text-neutral-400">Quick</span>

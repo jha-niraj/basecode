@@ -1,49 +1,12 @@
-import { drizzle } from 'drizzle-orm/postgres-js'
-import postgres from 'postgres'
-import * as schema from './schema'
+export { db, neonQuery, createDb, schema } from './client'
+export type { Database } from './client'
+/** @deprecated use `Database` */
+export type DB = import('./client').Database
 
-const globalForDb = globalThis as unknown as {
-    db: ReturnType<typeof createDb> | undefined
-}
-
-function createDb() {
-    const client = postgres(process.env.DATABASE_URL!)
-    return drizzle(client, { schema })
-}
-
-export const db = globalForDb.db ?? createDb()
-
-if (process.env.NODE_ENV !== 'production') {
-    globalForDb.db = db
-}
-
-export type DB = typeof db
-
-// Re-export common Drizzle operators so consumers only need to import from '@repo/db'
+// Common Drizzle operators, so consumers import only from '@repo/db'.
 export {
-    eq,
-    and,
-    or,
-    not,
-    ne,
-    gt,
-    gte,
-    lt,
-    lte,
-    inArray,
-    notInArray,
-    isNull,
-    isNotNull,
-    count,
-    countDistinct,
-    sum,
-    avg,
-    min,
-    max,
-    asc,
-    desc,
-    sql,
-    like,
-    ilike,
+    eq, and, or, not, ne, gt, gte, lt, lte, inArray, notInArray, isNull, isNotNull, count, countDistinct, sum, avg,
+    min, max, asc, desc, sql, like, ilike, exists, between, getTableColumns,
 } from 'drizzle-orm'
 export { relations } from 'drizzle-orm'
+export type { SQL } from 'drizzle-orm'

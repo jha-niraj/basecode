@@ -1,146 +1,93 @@
 import {
-    Home, Users, BarChart3, Settings, Shield,
-    type LucideIcon, Activity, Lock, Megaphone, Radio,
-    ClipboardList, DollarSign, MessageSquare
+    Activity, BarChart3, CreditCard, FileBarChart, Home, Lock, Megaphone, MessageSquare, Radio, Settings, Shield, Users, Wallet,
 } from "lucide-react"
+import type { ShellNavItem, ShellNavSection } from "@repo/ui/lib/shell"
+import { adminCan, type AdminPermission, type AdminPermissions } from "./permissions"
 
-export interface NavigationItem {
-    name: string
-    path: string
-    icon: LucideIcon
-    children?: NavigationItem[]
-    requiredPermission?: string
-    /** When true, clicking the parent only expands children — doesn't navigate to the path */
-    noRoute?: boolean
-}
+export * from "./permissions"
 
-export interface NavigationConfig {
-    primary: NavigationItem[]
-    secondary: NavigationItem[]
-}
+/**
+ * The admin rail. Route constants live here so every link is built from one place (never a guessed URL). App URLs
+ * carry no hyphens (`/reports/adminactivity`).
+ */
+export const ROUTES = {
+    home: "/home",
+    analytics: "/analytics",
+    users: "/users",
+    reportsActivity: "/reports/adminactivity",
+    reportsFinancial: "/reports/financial",
+    billing: "/billing",
+    communications: "/communications",
+    announcements: "/communications/announcements",
+    broadcasts: "/communications/broadcasts",
+    admins: "/admins",
+    audit: "/admins/audit",
+    access: "/admins/access",
+    profile: "/admins/profile",
+    settings: "/system/settings",
+    accessDenied: "/accessdenied",
+    signIn: "/",
+} as const
 
-export const adminNavigation: NavigationConfig = {
-    primary: [
-        {
-            name: "Home",
-            path: "home",
-            icon: Home,
-        },
-        {
-            name: "Analytics",
-            path: "analytics",
-            icon: BarChart3,
-            requiredPermission: "analytics",
-        },
-        {
-            name: "Users",
-            path: "users",
-            icon: Users,
-            requiredPermission: "users",
-        },
-        {
-            name: "Reports",
-            path: "reports",
-            icon: ClipboardList,
-            requiredPermission: "analytics",
-            noRoute: true,
-            children: [
-                { name: "Admin Activity", path: "reports/admin-activity", icon: Shield },
-                { name: "Financial Report", path: "reports/financial", icon: DollarSign },
-            ],
-        },
-        {
-            name: "Communications",
-            path: "communications",
-            icon: MessageSquare,
-            requiredPermission: "communications",
-            // /communications shows an overview page — not noRoute
-            children: [
-                { name: "Announcements", path: "communications/announcements", icon: Megaphone },
-                { name: "Broadcasts", path: "communications/broadcasts", icon: Radio },
-            ],
-        },
-    ],
-    secondary: [
-        {
-            name: "Admin Management",
-            path: "admins",
-            icon: Shield,
-            requiredPermission: "admin_management",
-            // "admins" is a valid route — navigates to /admins (admin list)
-            // Children are sub-pages under admin management
-            children: [
-                { name: "Audit Logs", path: "admins/audit", icon: Activity },
-                { name: "Access Control", path: "admins/access", icon: Lock },
-            ],
-        },
-        {
-            name: "System",
-            path: "system/settings",
-            icon: Settings,
-            requiredPermission: "system",
-            noRoute: false,   // /system has no page; only sub-pages exist
-            children: [
-                { name: "Settings", path: "system/settings", icon: Settings },
-            ],
-        },
-    ],
-}
+/** The rail pin cookie ("1" = unpinned). Admin's own name: localhost cookies ignore the port. */
+export const ADMIN_RAIL_COOKIE = "admin_rail_hidden"
 
-export type AdminPermission =
-    | "users"
-    | "analytics"
-    | "communications"
-    | "admin_management"
-    | "system"
+type NavDef = ShellNavItem & { permission?: AdminPermission }
 
-export type PermissionLevel = "read" | "write" | "delete" | "full"
-
-export interface AdminPermissions {
-    [key: string]: PermissionLevel[]
-}
-
-export const defaultPermissionsByRole: Record<string, AdminPermissions> = {
-    SUPER_ADMIN: {
-        users: ["read", "write", "delete", "full"],
-        analytics: ["read", "write", "full"],
-        communications: ["read", "write", "delete", "full"],
-        admin_management: ["read", "write", "delete", "full"],
-        system: ["read", "write", "full"],
+const NAV: { id: string; label?: string; items: NavDef[] }[] = [
+    {
+        id: "main",
+        items: [
+            { name: "Home", href: ROUTES.home, icon: Home, tab: true },
+            { name: "Analytics", href: ROUTES.analytics, icon: BarChart3, permission: "analytics", tab: true },
+            { name: "Users", href: ROUTES.users, icon: Users, permission: "users", tab: true },
+            { name: "Billing", href: ROUTES.billing, icon: CreditCard, permission: "analytics" },
+        ],
     },
-    TEAM_MEMBER: {},
-}
+    {
+        id: "reports",
+        label: "Reports",
+        items: [
+            { name: "Admin activity", href: ROUTES.reportsActivity, icon: FileBarChart, permission: "analytics" },
+            { name: "Financial", href: ROUTES.reportsFinancial, icon: Wallet, permission: "analytics" },
+        ],
+    },
+    {
+        id: "communications",
+        label: "Communications",
+        items: [
+            { name: "Overview", href: ROUTES.communications, icon: MessageSquare, permission: "communications" },
+            { name: "Announcements", href: ROUTES.announcements, icon: Megaphone, permission: "communications", tab: true },
+            { name: "Broadcasts", href: ROUTES.broadcasts, icon: Radio, permission: "communications" },
+        ],
+    },
+    {
+        id: "team",
+        label: "Team",
+        items: [
+            { name: "Admins", href: ROUTES.admins, icon: Shield, permission: "admin_management" },
+            { name: "Audit log", href: ROUTES.audit, icon: Activity, permission: "admin_management" },
+            { name: "Access", href: ROUTES.access, icon: Lock, permission: "admin_management" },
+        ],
+    },
+    {
+        id: "system",
+        label: "System",
+        items: [
+            { name: "Settings", href: ROUTES.settings, icon: Settings, permission: "system" },
+        ],
+    },
+]
 
-export function hasPermission(
-    permissions: AdminPermissions,
-    module: AdminPermission,
-    level: PermissionLevel,
-): boolean {
-    const modulePermissions = permissions[module]
-    if (!modulePermissions) return false
-    return modulePermissions.includes(level) || modulePermissions.includes("full")
-}
-
-export function getNavigationForPermissions(
-    permissions: AdminPermissions,
-    adminRole?: string,
-): NavigationConfig {
-    if (adminRole === "SUPER_ADMIN") return adminNavigation
-
-    const filterItems = (items: NavigationItem[]): NavigationItem[] => {
-        return items
-            .filter((item) => {
-                if (!item.requiredPermission) return true
-                return hasPermission(permissions, item.requiredPermission as AdminPermission, "read")
-            })
-            .map((item) => ({
-                ...item,
-                children: item.children ? filterItems(item.children) : undefined,
-            }))
-    }
-
-    return {
-        primary: filterItems(adminNavigation.primary),
-        secondary: filterItems(adminNavigation.secondary),
-    }
+/** The rail for one admin: items they cannot read are left out; an empty section disappears. */
+export function adminNavFor(admin: { role: string; permissions: AdminPermissions }): ShellNavSection[] {
+    return NAV
+        .map((s) => ({
+            id: s.id,
+            label: s.label,
+            items: s.items
+                .filter((i) => !i.permission || adminCan(admin, i.permission, "read"))
+                .map((i): ShellNavItem => ({ name: i.name, href: i.href, icon: i.icon, tab: i.tab, match: i.match, badge: i.badge })),
+        }))
+        .filter((s) => s.items.length > 0)
 }

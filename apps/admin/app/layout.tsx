@@ -1,58 +1,32 @@
-import type { Metadata } from "next";
-import "@repo/ui/styles/globals.css";
-import "./editor.css";
-import "@/lib/env";
-import { ThemeProvider } from "@repo/ui/components/themeprovider";
-import { Geist, Space_Grotesk, Geist_Mono } from "next/font/google";
-import { Toaster as SonnerToaster } from "@repo/ui/components/ui/sonner";
-import { Providers } from "./providers";
-
-const geistSans = Geist({
-	variable: "--font-geist-sans",
-	subsets: ["latin"],
-});
-const spaceGrotesk = Space_Grotesk({
-	subsets: ['latin'],
-	weight: ['300', '400', '500', '600', '700'],
-	display: 'swap',
-	variable: '--font-space-grotesk',
-})
-const geistMono = Geist_Mono({
-	variable: "--font-geist-mono",
-	subsets: ["latin"],
-});
+import type { Metadata, Viewport } from "next"
+import "@repo/ui/styles/globals.css"
+import "./editor.css"
+import { SITE } from "@repo/core/site"
+import { geistMono, geistSans } from "./fonts"
+import { Providers } from "./providers"
 
 export const metadata: Metadata = {
-	title: {
-		default: "Admin",
-		template: "%s | Admin"
-	},
-	description: "Admin control panel - manage users, settings, and platform operations.",
-	robots: { index: false, follow: false },
-};
+    title: { default: `${SITE.name} admin`, template: `%s | ${SITE.name} admin` },
+    description: `The ${SITE.name} admin console - team, access, users, audit and system settings.`,
+    robots: { index: false, follow: false },
+}
 
-export default function RootLayout({
-	children,
-}: Readonly<{
-	children: React.ReactNode;
-}>) {
-	return (
-		<html lang="en">
-			<body className={`
-				${spaceGrotesk.className} ${geistSans.variable} ${geistMono.variable} antialiased 
-			`}>
-				<Providers>
-					<ThemeProvider
-						attribute="class"
-						defaultTheme="system"
-						enableSystem
-						disableTransitionOnChange
-					>
-							{children}
-						<SonnerToaster position="top-center" closeButton richColors />
-					</ThemeProvider>
-				</Providers>
-			</body>
-		</html>
-	);
+export const viewport: Viewport = {
+    width: "device-width",
+    initialScale: 1,
+    viewportFit: "cover",
+    themeColor: [
+        { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+        { media: "(prefers-color-scheme: dark)", color: "#121314" },
+    ],
+}
+
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+    return (
+        <html lang="en" suppressHydrationWarning className={`${geistSans.variable} ${geistMono.variable}`}>
+            <body className="bg-white font-sans text-neutral-900 antialiased dark:bg-[#121314] dark:text-neutral-100">
+                <Providers>{children}</Providers>
+            </body>
+        </html>
+    )
 }

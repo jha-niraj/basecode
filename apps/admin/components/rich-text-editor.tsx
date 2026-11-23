@@ -4,8 +4,11 @@ import { useEditor, EditorContent } from "@tiptap/react"
 import StarterKit from "@tiptap/starter-kit"
 import Underline from "@tiptap/extension-underline"
 import Link from "@tiptap/extension-link"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { cn } from "@repo/ui/lib/utils"
+import { Button } from "@repo/ui/components/ui/button"
+import { Input } from "@repo/ui/components/ui/input"
+import { Popover, PopoverContent, PopoverTrigger } from "@repo/ui/components/ui/popover"
 import {
     Bold, Italic, Underline as UnderlineIcon, Heading2, Heading3,
     List, ListOrdered, Quote, Minus, Link as LinkIcon,
@@ -29,21 +32,25 @@ function ToolbarButton({ onClick, active, title, disabled, children }: {
     children: React.ReactNode
 }) {
     return (
-        <button
+        <Button
             type="button"
+            variant="ghost"
+            size="icon"
             title={title}
+            aria-label={title}
+            aria-pressed={active}
             disabled={disabled}
+            // mousedown, not click: the editor keeps its selection.
             onMouseDown={(e) => { e.preventDefault(); onClick(e) }}
             className={cn(
-                "p-1.5 rounded transition-colors cursor-pointer",
+                "h-7 w-7 cursor-pointer rounded-md",
                 active
-                    ? "bg-neutral-900 text-white dark:bg-white dark:text-neutral-900"
-                    : "hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-600 dark:text-neutral-400 hover:text-neutral-950 dark:hover:text-white",
-                disabled && "opacity-40 cursor-not-allowed",
+                    ? "bg-neutral-900 text-white hover:bg-neutral-900 hover:text-white dark:bg-white dark:text-neutral-900 dark:hover:bg-white"
+                    : "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-950 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-white",
             )}
         >
             {children}
-        </button>
+        </Button>
     )
 }
 
@@ -93,17 +100,16 @@ export function RichTextEditor({
         }
     }, [editor, value])
 
+    const [linkOpen, setLinkOpen] = useState(false)
+    const [linkUrl, setLinkUrl] = useState("")
+
     if (!editor) return null
 
-    const setLink = () => {
-        const prev = editor.getAttributes("link").href as string | undefined
-        const url = window.prompt("URL", prev)
-        if (url === null) return
-        if (url === "") {
-            editor.chain().focus().extendMarkRange("link").unsetLink().run()
-        } else {
-            editor.chain().focus().extendMarkRange("link").setLink({ href: url }).run()
-        }
+    const applyLink = () => {
+        const url = linkUrl.trim()
+        if (!url) editor.chain().focus().extendMarkRange("link").unsetLink().run()
+        else editor.chain().focus().extendMarkRange("link").setLink({ href: /^(https?:|mailto:)/i.test(url) ? url : `https://${url}` }).run()
+        setLinkOpen(false)
     }
 
     return (
@@ -128,7 +134,21 @@ export function RichTextEditor({
 
                 <span className="w-px h-5 bg-neutral-200 dark:bg-neutral-800 mx-1.5" />
 
-                <ToolbarButton onClick={setLink} active={editor.isActive("link")} title="Insert link"><LinkIcon size={14} /></ToolbarButton>
+                <Popover open={linkOpen} onOpenChange={(o) => { setLinkOpen(o); if (o) setLinkUrl((editor.getAttributes("link").href as string | undefined) ?? "") }}>
+                    <PopoverTrigger asChild>
+                        <Button type="button" variant="ghost" size="icon" title="Link" aria-label="Link" aria-pressed={editor.isActive("link")}
+                            className={cn("h-7 w-7 cursor-pointer rounded-md", editor.isActive("link") ? "bg-neutral-900 text-white dark:bg-white dark:text-neutral-900" : "text-neutral-600 dark:text-neutral-400")}>
+                            <LinkIcon size={14} />
+                        </Button>
+                    </PopoverTrigger>
+                    <PopoverContent align="start" className="w-72">
+                        <div className="flex items-center gap-2">
+                            <Input autoFocus value={linkUrl} onChange={(e) => setLinkUrl(e.target.value)} placeholder="https://"
+                                onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); applyLink() } }} />
+                            <Button type="button" size="sm" className="cursor-pointer" onClick={applyLink}>{linkUrl.trim() ? "Apply" : "Remove"}</Button>
+                        </div>
+                    </PopoverContent>
+                </Popover>
 
                 <span className="w-px h-5 bg-neutral-200 dark:bg-neutral-800 mx-1.5" />
 
@@ -139,7 +159,7 @@ export function RichTextEditor({
             {/* Editor area */}
             <div
                 className="bg-white dark:bg-neutral-900 focus-within:ring-1 focus-within:ring-neutral-400 dark:focus-within:ring-neutral-600 transition-all"
-                style={maxHeight ? { maxHeight, overflow: "auto" } : undefined}
+                style={maxHeight ? { maxHeight, overflowY: "auto" } : undefined}
             >
                 <EditorContent editor={editor} />
             </div>

@@ -65,7 +65,7 @@ export interface KanbanBoardProps<T> {
     /** Extra class applied to the card area while a draggable is hovering over it. */
     droppingClassName?: string;
     /** Class for the outer horizontal ScrollArea. Bound the board's height here - normally
-     *  `flex-1 min-h-0` inside a `h-[var(--gk-page-h)]` page column. */
+     *  `flex-1 min-h-0` inside a `h-[var(--app-page-h)]` page column. */
     boardClassName?: string;
     /** Class for each column's own vertical ScrollArea (its card list). Cap a column here,
      *  e.g. `max-h-[60vh]`, when the board is not already height-bounded by its parent. */
@@ -119,7 +119,7 @@ export interface KanbanBoardProps<T> {
  *    cards they label.
  *
  * The board must never grow the page: bound `boardClassName` with `flex-1 min-h-0` inside a
- * `h-[var(--gk-page-h)]` column, or cap each column via `columnScrollClassName`.
+ * `h-[var(--app-page-h)]` column, or cap each column via `columnScrollClassName`.
  */
 export function KanbanBoard<T>({
     columns,

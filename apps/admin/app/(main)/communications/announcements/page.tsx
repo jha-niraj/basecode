@@ -1,44 +1,13 @@
-import type { PlatformAnnouncement } from "@/actions/announcements.action"
+import type { Metadata } from "next"
 import { getPlatformAnnouncements } from "@/actions/announcements.action"
+import { requireAdminPage } from "@/lib/admin-session"
 import { AnnouncementsClient } from "./_components/announcements-client"
-import { PermissionGate } from "@/components/permission-gate"
 
-export const dynamic = "force-dynamic"
-export const metadata = { title: "Announcements" }
+export const metadata: Metadata = { title: "Announcements" }
 
-interface PageProps {
-    searchParams: Promise<{ page?: string }>
-}
-
-export default async function AnnouncementsPage({ searchParams }: PageProps) {
-    const params = await searchParams
-    const page = Math.max(1, parseInt(params.page ?? "1") || 1)
-
-    let announcements: PlatformAnnouncement[] = []
-    let total = 0
-    let totalPages = 1
-    let error: string | undefined
-
-    try {
-        const data = await getPlatformAnnouncements(page, 20)
-        announcements = data.announcements
-        total = data.total
-        totalPages = data.totalPages
-    } catch (err) {
-        error = err instanceof Error ? err.message : "Failed to load announcements"
-    }
-
-    // No wrapper div here — the split panel uses negative margins to reach the edges,
-    // just like broadcasts/page.tsx. A max-w-7xl wrapper creates dead space on the right.
-    return (
-        <PermissionGate module="communications" level="read">
-            <AnnouncementsClient
-                announcements={announcements}
-                total={total}
-                totalPages={totalPages}
-                currentPage={page}
-                error={error}
-            />
-        </PermissionGate>
-    )
+export default async function AnnouncementsPage({ searchParams }: { searchParams: Promise<{ tab?: string; open?: string }> }) {
+    await requireAdminPage("communications")
+    const [params, res] = await Promise.all([searchParams, getPlatformAnnouncements()])
+    if (!res.success) throw new Error(res.error)
+    return <AnnouncementsClient initial={res.data} initialTab={params.tab} initialOpen={params.open ?? null} />
 }

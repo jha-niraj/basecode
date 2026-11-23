@@ -7,13 +7,13 @@
  * person writing the eighth copy:
  *
  *  1. **No UTF-8 BOM, so Excel mojibaked every Nepali name.** Excel on Windows does not sniff UTF-8;
- *     without a leading BOM it decodes as the system codepage and Devanagari becomes garbage. On a
- *     platform for Nepali schools that is not a rounding error - it is most of the student list.
+ *     without a leading BOM it decodes as the system codepage and Devanagari becomes garbage. For
+ *     Nepali-language data that is not a rounding error - it is most of the list.
  *     The BOM is added by `downloadCsv` rather than here, so that a string built on the server and a
  *     string built in the browser both get it exactly once, at the single point where a file is
  *     actually produced.
  *  2. **CSV injection.** A cell beginning `=`, `+`, `-`, `@`, tab or CR is interpreted by Excel and
- *     Sheets as a FORMULA. A student nicknamed `=cmd|...` in a school's own data becomes code that
+ *     Sheets as a FORMULA. A customer nicknamed `=cmd|...` in a tenant's own data becomes code that
  *     runs on the machine of whoever opens the export. See `sanitizeForSpreadsheet` for why the
  *     obvious fix breaks finance exports and what is done instead.
  *  3. **`\n` line endings.** RFC 4180 specifies CRLF, and older Excel builds run rows together
@@ -62,7 +62,7 @@ function sanitizeForSpreadsheet(text: string): string {
  * Render one value as a quoted CSV field.
  *
  * Every field is quoted unconditionally rather than only when it contains a delimiter. It costs a
- * few bytes and removes a whole class of "this export is fine until a school puts a comma in its
+ * few bytes and removes a whole class of "this export is fine until a customer puts a comma in its
  * address" bug.
  */
 export function escapeCsvCell(value: string | number | boolean | Date | null | undefined): string {
@@ -80,7 +80,7 @@ export function escapeCsvCell(value: string | number | boolean | Date | null | u
  * Serialize rows to a CSV string, headers included.
  *
  *     const csv = toCsv(payments, [
- *         { header: 'School', value: (p) => p.schoolName },
+ *         { header: 'Customer', value: (p) => p.customerName },
  *         { header: 'Amount (NPR)', value: (p) => p.amountTotal },
  *         { header: 'Date', value: (p) => p.createdAt },
  *     ]);

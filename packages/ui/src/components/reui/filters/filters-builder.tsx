@@ -285,7 +285,8 @@ export function FiltersBuilder<V, O>({
             /* THE RESET BOUNCE: the button's base class carries
                `transition-all`, so flipping the size class eased padding 0 to
                `px-6` in sera over 150ms. Naming a transition REPLACES it. */
-            className="transition-[color,background-color,border-color,box-shadow]"
+            /* gap-1.5: the glyph sat against "Add filter" (browser-pass backlog 2026-11-13). */
+            className="gap-1.5 transition-[color,background-color,border-color,box-shadow]"
           >
             {/* No filter-plus glyph in phosphor or remixicon. */}
             <ListFilterPlusIcon />

@@ -1,134 +1,161 @@
 "use server"
 
-import { db } from "@repo/db"
-import { announcement, adminAuditLog } from "@repo/db/schema"
-import { eq, desc, count } from "@repo/db"
-import { auth } from "@repo/auth"
-import { headers } from "next/headers"
 import { revalidatePath } from "next/cache"
+import { db } from "@repo/db"
+import { adminAuditLog, announcement } from "@repo/db/schema"
+import { count, desc, eq } from "@repo/db"
+import { errorText, requireAdminAction } from "./guard"
 
-export type AnnouncementType = "MAINTENANCE" | "FEATURE_RELEASE" | "POLICY_CHANGE" | "PLATFORM_NEWS"
-export type AnnouncementPriority = "NORMAL" | "HIGH" | "URGENT"
+import type {
+    ActionResult as Result, AnnouncementInput, AnnouncementPriority, AnnouncementStatus, AnnouncementType, PlatformAnnouncement,
+} from "@/types/communications"
 
-export interface PlatformAnnouncement {
-    id: string
-    title: string
-    content: string
-    announcementType: AnnouncementType
-    priority: AnnouncementPriority
-    /** Generic audience note - replace with product-specific targeting (e.g., user segments) */
-    targetAudience: string | null
-    status: "DRAFT" | "PUBLISHED" | "ARCHIVED"
-    createdAt: Date
+const TYPES = new Set<string>(["MAINTENANCE", "FEATURE_RELEASE", "POLICY_CHANGE", "PLATFORM_NEWS"])
+const PRIORITIES = new Set<string>(["NORMAL", "HIGH", "URGENT"])
+
+function toAnnouncement(row: typeof announcement.$inferSelect): PlatformAnnouncement {
+    const meta = (row.metadata && typeof row.metadata === "object" ? row.metadata : {}) as Record<string, unknown>
+    const type = typeof meta.announcementType === "string" && TYPES.has(meta.announcementType) ? meta.announcementType as AnnouncementType : "PLATFORM_NEWS"
+    const priority = PRIORITIES.has(row.priority.toUpperCase()) ? row.priority.toUpperCase() as AnnouncementPriority : "NORMAL"
+    return {
+        id: row.id,
+        title: row.title,
+        content: row.content,
+        announcementType: type,
+        priority,
+        targetAudience: typeof meta.targetAudience === "string" ? meta.targetAudience : null,
+        status: row.status,
+        publishedAt: row.publishedAt ? row.publishedAt.toISOString() : null,
+        createdAt: row.createdAt.toISOString(),
+        updatedAt: row.updatedAt.toISOString(),
+    }
 }
 
-async function getAdminRecord() {
-    const session = await auth.api.getSession({ headers: await headers() })
-    if (!session?.user?.id) throw new Error("Unauthorized")
-    const record = await db.query.adminAccess.findFirst({
-        where: (a, { eq }) => eq(a.userId, session.user.id),
-    })
-    if (!record) throw new Error("Admin access required")
-    return record
+function validate(input: AnnouncementInput): string | null {
+    if (!input.title.trim()) return "Give the announcement a title"
+    if (input.title.trim().length > 200) return "Keep the title under 200 characters"
+    if (!input.content.replace(/<[^>]*>/g, "").trim()) return "Write the announcement"
+    if (!TYPES.has(input.announcementType)) return "Pick a type"
+    if (!PRIORITIES.has(input.priority)) return "Pick a priority"
+    return null
 }
 
-export async function createPlatformAnnouncement(data: {
-    title: string
-    content: string
-    announcementType: AnnouncementType
-    priority: AnnouncementPriority
-    targetAudience?: string | null
-}): Promise<{ success: boolean; error?: string }> {
+/** The list (newest first) and counts per status. Capped at 200 - the page lists with a ceiling. */
+export async function getPlatformAnnouncements(): Promise<Result<{ announcements: PlatformAnnouncement[]; total: number }>> {
     try {
-        const admin = await getAdminRecord()
+        await requireAdminAction("communications", "read")
+        const [rows, [totalRow]] = await Promise.all([
+            db.query.announcement.findMany({ orderBy: [desc(announcement.createdAt)], limit: 200 }),
+            db.select({ total: count() }).from(announcement),
+        ])
+        return { success: true, data: { announcements: rows.map(toAnnouncement), total: totalRow?.total ?? 0 } }
+    } catch (err) {
+        return { success: false, error: errorText(err, "Could not load announcements") }
+    }
+}
 
+export async function createPlatformAnnouncement(input: AnnouncementInput): Promise<Result<PlatformAnnouncement>> {
+    try {
+        const admin = await requireAdminAction("communications", "write")
+        const bad = validate(input)
+        if (bad) return { success: false, error: bad }
         const [created] = await db.insert(announcement).values({
-            title: data.title,
-            content: data.content,
-            status: "PUBLISHED",
-            priority: data.priority,
+            title: input.title.trim(),
+            content: input.content,
+            status: input.status,
+            priority: input.priority,
             authorId: admin.id,
-            publishedAt: new Date(),
-            metadata: {
-                announcementType: data.announcementType,
-                targetAudience: data.targetAudience ?? null,
-            },
-            createdAt: new Date(),
-            updatedAt: new Date(),
+            publishedAt: input.status === "PUBLISHED" ? new Date() : null,
+            metadata: { announcementType: input.announcementType, targetAudience: input.targetAudience?.trim() || null },
         }).returning()
+        if (!created) return { success: false, error: "Could not create the announcement" }
 
         await db.insert(adminAuditLog).values({
             adminId: admin.id,
             action: "CREATE",
             module: "communications",
             resourceType: "Announcement",
-            resourceId: created?.id,
-            description: `Created platform announcement: ${data.title}`,
-            createdAt: new Date(),
+            resourceId: created.id,
+            description: `Created announcement: ${created.title}`,
         })
-
         revalidatePath("/communications/announcements")
-        return { success: true }
+        return { success: true, data: toAnnouncement(created) }
     } catch (err) {
-        console.error("createPlatformAnnouncement error:", err)
-        return { success: false, error: err instanceof Error ? err.message : "Failed to create announcement" }
+        return { success: false, error: errorText(err, "Could not create the announcement") }
     }
 }
 
-export async function getPlatformAnnouncements(
-    page = 1,
-    limit = 20,
-): Promise<{ announcements: PlatformAnnouncement[]; total: number; totalPages: number }> {
-    await getAdminRecord()
+export async function updatePlatformAnnouncement(id: string, input: AnnouncementInput): Promise<Result<PlatformAnnouncement>> {
+    try {
+        const admin = await requireAdminAction("communications", "write")
+        const bad = validate(input)
+        if (bad) return { success: false, error: bad }
+        const existing = await db.query.announcement.findFirst({ where: (a, { eq }) => eq(a.id, id) })
+        if (!existing) return { success: false, error: "That announcement no longer exists" }
+        const [updated] = await db.update(announcement).set({
+            title: input.title.trim(),
+            content: input.content,
+            priority: input.priority,
+            status: input.status,
+            publishedAt: input.status === "PUBLISHED" ? (existing.publishedAt ?? new Date()) : null,
+            metadata: { announcementType: input.announcementType, targetAudience: input.targetAudience?.trim() || null },
+            updatedAt: new Date(),
+        }).where(eq(announcement.id, id)).returning()
+        if (!updated) return { success: false, error: "Could not save the announcement" }
 
-    const skip = (page - 1) * limit
-    const [rows, countResult] = await Promise.all([
-        db.query.announcement.findMany({
-            orderBy: [desc(announcement.createdAt)],
-            offset: skip,
-            limit,
-        }),
-        db.select({ total: count() }).from(announcement),
-    ])
-
-    const total = Number(countResult[0]?.total ?? 0)
-    const announcements: PlatformAnnouncement[] = rows.map((row) => {
-        const meta = (row.metadata ?? {}) as Record<string, unknown>
-        return {
-            id: row.id,
-            title: row.title,
-            content: row.content,
-            announcementType: (meta.announcementType as AnnouncementType) ?? "PLATFORM_NEWS",
-            priority: (row.priority as AnnouncementPriority) ?? "NORMAL",
-            targetAudience: (meta.targetAudience as string | null) ?? null,
-            status: row.status as "DRAFT" | "PUBLISHED" | "ARCHIVED",
-            createdAt: row.createdAt,
-        }
-    })
-
-    return { announcements, total, totalPages: Math.ceil(total / limit) }
+        await db.insert(adminAuditLog).values({
+            adminId: admin.id,
+            action: "UPDATE",
+            module: "communications",
+            resourceType: "Announcement",
+            resourceId: id,
+            description: `Updated announcement: ${updated.title}`,
+        })
+        revalidatePath("/communications/announcements")
+        return { success: true, data: toAnnouncement(updated) }
+    } catch (err) {
+        return { success: false, error: errorText(err, "Could not save the announcement") }
+    }
 }
 
-export async function deletePlatformAnnouncement(id: string): Promise<{ success: boolean; error?: string }> {
+export async function setPlatformAnnouncementStatus(id: string, status: AnnouncementStatus): Promise<Result> {
     try {
-        const admin = await getAdminRecord()
+        const admin = await requireAdminAction("communications", "write")
+        await db.update(announcement).set({
+            status,
+            publishedAt: status === "PUBLISHED" ? new Date() : undefined,
+            updatedAt: new Date(),
+        }).where(eq(announcement.id, id))
+        await db.insert(adminAuditLog).values({
+            adminId: admin.id,
+            action: "UPDATE",
+            module: "communications",
+            resourceType: "Announcement",
+            resourceId: id,
+            description: `Set announcement status to ${status.toLowerCase()}`,
+        })
+        revalidatePath("/communications/announcements")
+        return { success: true, data: null }
+    } catch (err) {
+        return { success: false, error: errorText(err, "Could not change the status") }
+    }
+}
 
+export async function deletePlatformAnnouncement(id: string): Promise<Result> {
+    try {
+        const admin = await requireAdminAction("communications", "delete")
         await db.delete(announcement).where(eq(announcement.id, id))
-
         await db.insert(adminAuditLog).values({
             adminId: admin.id,
             action: "DELETE",
             module: "communications",
             resourceType: "Announcement",
             resourceId: id,
-            description: "Deleted platform announcement",
-            createdAt: new Date(),
+            description: "Deleted an announcement",
         })
-
         revalidatePath("/communications/announcements")
-        return { success: true }
+        return { success: true, data: null }
     } catch (err) {
-        console.error("deletePlatformAnnouncement error:", err)
-        return { success: false, error: err instanceof Error ? err.message : "Failed to delete" }
+        return { success: false, error: errorText(err, "Could not delete the announcement") }
     }
 }

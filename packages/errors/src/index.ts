@@ -3,7 +3,7 @@
  *
  * Pure TypeScript, zero runtime dependencies, no React / DOM / Node-only APIs,
  * so it runs identically in the Next server, the Next client, React Native, and
- * Cloudflare Workers. See srs/error-handling/error-playbook.md for the full spec.
+ * Cloudflare Workers.
  */
 
 // Kinds + status mapping

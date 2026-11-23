@@ -25,9 +25,9 @@ export interface TextareaProps
  * and a comment that mentioned `ring-offset-2` would have shipped it as a real class and put the
  * white band straight back.
  *
- * `resize-none sm:resize-y`: the drag-to-resize grabber is a desktop affordance with no touch
- * equivalent - on a phone it is a decoration in the corner that also lets a stray drag reflow the
- * form. Vertical only, from `sm`.
+ * `resize-none field-sizing-content`: the box grows with what is typed (up to whatever max-h the caller
+ * sets), so there is no drag grabber anywhere - on a phone it was a decoration that let a stray drag
+ * reflow the form, and on a desktop it was one more thing to fiddle with (owner, 2026-11-23).
  */
 const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
 	({ className, ...props }, ref) => {
@@ -39,16 +39,16 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
 						flex min-h-[96px] w-full
 						rounded-xl border
 						bg-white dark:bg-neutral-900
-						border-gray-200 dark:border-neutral-700
+						border-neutral-200 dark:border-neutral-700
 						px-3 py-2 text-sm
 
-						resize-none sm:resize-y
+						resize-none field-sizing-content
 
-						text-gray-900 dark:text-gray-100
-						placeholder:text-gray-400 dark:placeholder:text-neutral-500
+						text-neutral-900 dark:text-neutral-100
+						placeholder:text-neutral-400 dark:placeholder:text-neutral-500
 
 						transition-colors
-						hover:bg-gray-50 dark:hover:bg-neutral-800
+						hover:bg-neutral-50 dark:hover:bg-neutral-800
 
 						focus-visible:outline-none
 						focus-visible:border-neutral-400 dark:focus-visible:border-neutral-500

@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState, type CSSProperties, type Keyb
 import { cn } from '../../lib/utils';
 
 /**
- * Two panes side by side with a drag handle between them (plan/main/reports/reports-overhaul-2026-10-22.md R14).
+ * Two panes side by side with a drag handle between them.
  *
  * Small on purpose - two panes, one horizontal split - so it carries no dependency. From `from` up the panes sit side
  * by side and the handle shows; below it the two panes simply stack in the flex column the caller already had (the

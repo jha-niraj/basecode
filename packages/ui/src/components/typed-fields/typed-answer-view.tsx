@@ -1,6 +1,6 @@
 /**
- * One typed answer, read-only (plan/main/settings/settings-manual-pass-2026-10-21.md D2): Yes / No, a date in the
- * school's calendar, the choices joined, or the text as given. `empty` shows when there is no answer.
+ * One typed answer, read-only: Yes / No, a date in the
+ * tenant's calendar, the choices joined, or the text as given. `empty` shows when there is no answer.
  */
 import { formatSchoolDate } from '@repo/calendar';
 import { formatAnswer, type FieldDef, type TypedValue } from '@repo/core/typed-fields';

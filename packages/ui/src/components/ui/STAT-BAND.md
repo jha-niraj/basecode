@@ -54,7 +54,7 @@ import { Users, Activity, AlertCircle } from "lucide-react"
 
 <StatBand
     items={[
-        { icon: Users, label: "Students", value: 162 },
+        { icon: Users, label: "Customers", value: 162 },
         { icon: Activity, label: "Present", value: "89%", hint: "144 of 162" },
         { icon: AlertCircle, label: "Overdue", value: 7, tone: "rose", href: "/billing?f=overdue" },
     ]}

@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * The "add a question" editor (plan/main/settings/settings-manual-pass-2026-10-21.md D2): the question, how it is
+ * The "add a question" editor: the question, how it is
  * answered, its choices (for the choice types) and a Required switch. Controlled - the caller keeps the draft and
  * checks it with `fieldDefProblem` from @repo/core/typed-fields before saving (`error` shows that message here).
  *

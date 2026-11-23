@@ -1,5 +1,5 @@
-import { PageLoader } from "@repo/ui/components/ui/loader"
+import { AnalyticsSkeleton } from "./_components/analytics-skeleton"
 
 export default function Loading() {
-    return <PageLoader />
+    return <AnalyticsSkeleton />
 }

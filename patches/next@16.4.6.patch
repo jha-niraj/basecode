@@ -1,0 +1,18 @@
+diff --git a/dist/build/webpack/plugins/flight-manifest-plugin.js b/dist/build/webpack/plugins/flight-manifest-plugin.js
+index 735f35f6e174b1678257504de3ad5a982a26ba01..3a61115800c5b0117acbbf94efb287863f1c502f 100644
+--- a/dist/build/webpack/plugins/flight-manifest-plugin.js
++++ b/dist/build/webpack/plugins/flight-manifest-plugin.js
+@@ -359,6 +359,13 @@ class ClientReferenceManifestPlugin {
+                 });
+                 // Walk through all children chunk groups too.
+                 for (const child of chunkGroup.childrenIterable){
++                    // Base patch (measured in gurukulhq: 446 modules x 334 routes, ~20 MiB of a 64 MiB Worker): every app page's client
++                    // entry has `dependOn: 'main-app'`, which makes webpack link it as a CHILD of main-app. Walking
++                    // into those children recorded every page's client components under main-app, whose group ('')
++                    // is merged into every route's manifest - 446 modules x 334 routes, ~20 MiB of a 64 MiB Worker.
++                    // An entrypoint child records itself under its own route; async children (dynamic imports)
++                    // are still walked.
++                    if (child.isInitial()) continue;
+                     recordChunkGroup(child);
+                 }
+             }

@@ -1,54 +1,37 @@
-"use client"
+import { cookies } from "next/headers"
+import { redirect } from "next/navigation"
+import { railPinnedFromCookie, railWidthCookie, railWidthFromCookie } from "@repo/ui/lib/shell"
+import { getSession } from "@/lib/session"
+import { getShellPrefs } from "@/lib/settings"
+import { MAIN_RAIL_COOKIE, ROUTES } from "@/lib/navigation"
+import { MainShell } from "./_components/main-shell"
+import { AppearanceStyle } from "./_components/appearance-style"
 
-import { SidebarProvider, useSidebar } from "@/components/navigation/sidebarprovider"
-import { MainSidebar } from "@/components/navigation/sidebar"
-import { cn } from "@repo/ui/lib/utils"
-import { useSession } from "@repo/auth/client"
-import { useRouter } from "next/navigation"
-import { useEffect } from "react"
-import { PageLoader } from "@repo/ui/components/ui/loader"
-import { ScrollArea } from "@repo/ui/components/ui/scroll-area"
-
-function MainLayoutContent({ children }: { children: React.ReactNode }) {
-    const { isCollapsed } = useSidebar()
-    const { data: session, isPending } = useSession()
-    const router = useRouter()
-
-    useEffect(() => {
-        if (!isPending && !session) {
-            router.push("/signin")
-        }
-    }, [isPending, session, router])
-
-    if (isPending) return <PageLoader />
-    if (!session) return null
+/**
+ * The signed-in area's SERVER layout. It reads only the session (React-cached, cookie-first), the rail cookie and the
+ * shell prefs (onboarding done + appearance: one cached batch, `lib/settings.ts`), so the shell's first frame is right
+ * and every page's loading.tsx still paints at once - it never awaits page data.
+ *
+ * No session here means the cookie the middleware let through is dead (expired, revoked elsewhere): `?stale=1` makes
+ * the sign-in page say so in a sentence and clear the cookie. Each page and every server action still checks the
+ * session itself - this check is not enough on its own.
+ *
+ * Not onboarded -> /welcome, which lives OUTSIDE this group (`app/(onboarding)`), so the redirect never loops (a
+ * layout cannot read the pathname).
+ */
+export default async function AppLayout({ children }: { children: React.ReactNode }) {
+    const [session, jar] = await Promise.all([getSession(), cookies()])
+    if (!session) redirect(`${ROUTES.signIn}?stale=1`)
+    const prefs = await getShellPrefs(session.user.id)
+    if (!prefs.onboarded) redirect(ROUTES.onboarding)
+    const initialPinned = railPinnedFromCookie(jar.get(MAIN_RAIL_COOKIE)?.value)
+    const initialRailWidth = railWidthFromCookie(jar.get(railWidthCookie(MAIN_RAIL_COOKIE))?.value)
+    const { user } = session
 
     return (
-        <div className="h-screen overflow-hidden bg-neutral-100 dark:bg-neutral-900">
-            <MainSidebar />
-            <main
-                className={cn(
-                    "h-screen transition-all duration-300",
-                    "lg:ml-64 p-2",
-                    isCollapsed && "lg:ml-[90px]"
-                )}
-            >
-                <div className="h-screen bg-white dark:bg-neutral-950 lg:rounded-l-3xl lg:border-l border-neutral-200 dark:border-neutral-800 shadow-xl overflow-hidden">
-                    <ScrollArea className="h-full">
-                        <div style={{ padding: "clamp(24px,3vw,40px) clamp(16px,3vw,32px)" }}>
-                            {children}
-                        </div>
-                    </ScrollArea>
-                </div>
-            </main>
-        </div>
-    )
-}
-
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-    return (
-        <SidebarProvider>
-            <MainLayoutContent>{children}</MainLayoutContent>
-        </SidebarProvider>
+        <MainShell user={{ name: user.name, email: user.email, image: user.image }} initialPinned={initialPinned} initialRailWidth={initialRailWidth}>
+            <AppearanceStyle prefs={prefs.appearance} />
+            {children}
+        </MainShell>
     )
 }

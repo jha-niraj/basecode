@@ -1,5 +1,5 @@
 /**
- * An empty chart (Niraj, 2026-10-18: "instead of showing this, do some SVG animation"). A faint outline of the chart's
+ * An empty chart (the owner, 2026-10-18: "instead of showing this, do some SVG animation"). A faint outline of the chart's
  * own shape - bars or a line - slowly rising and settling, with the one-line reason over it. It is a picture of "no
  * data yet", never data: neutral, `aria-hidden`, and it stands still under `prefers-reduced-motion`.
  *

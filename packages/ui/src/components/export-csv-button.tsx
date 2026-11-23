@@ -20,7 +20,7 @@ import { downloadCsv } from '@repo/core/documents';
  *         rows={payments}
  *         filenameBase="financial-report"
  *         columns={[
- *             { header: 'School', value: (p) => p.schoolName },
+ *             { header: 'Customer', value: (p) => p.customerName },
  *             { header: 'Amount (NPR)', value: (p) => p.amountTotal },
  *         ]}
  *         title="Exports the 15 most recent payments shown on this page"

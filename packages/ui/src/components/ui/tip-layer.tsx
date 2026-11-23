@@ -5,7 +5,7 @@ import * as React from "react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./tooltip"
 
 /**
- * ONE TOOLTIP FOR EVERY `data-tip` (Niraj, 2026-10-20, R4-12: "anywhere we are using the native there we should use the
+ * ONE TOOLTIP FOR EVERY `data-tip` (the owner, 2026-10-20, R4-12: "anywhere we are using the native there we should use the
  * shadcn tooltip").
  *
  * Native `title=` tooltips are slow, unstyled and ignore the theme. Instead of wrapping each of a few hundred buttons in

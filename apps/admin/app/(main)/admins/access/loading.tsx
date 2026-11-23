@@ -1,5 +1,5 @@
-import { PageLoader } from "@repo/ui/components/ui/loader"
+import { AccessSkeleton } from "./_components/access-skeleton"
 
 export default function Loading() {
-    return <PageLoader />
+    return <AccessSkeleton />
 }

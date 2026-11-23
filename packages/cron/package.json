@@ -1,0 +1,25 @@
+{
+	"name": "@repo/cron",
+	"version": "0.0.0",
+	"private": true,
+	"description": "Scheduled job registry behind /api/cron/[job], run log",
+	"type": "module",
+	"main": "./src/index.ts",
+	"types": "./src/index.ts",
+	"exports": {
+		".": "./src/index.ts"
+	},
+	"scripts": {
+		"check-types": "tsc --noEmit"
+	},
+	"dependencies": {
+		"@repo/db": "workspace:*",
+		"@repo/crypto": "workspace:*",
+		"drizzle-orm": "^0.45.4"
+	},
+	"devDependencies": {
+		"@repo/typescript-config": "workspace:*",
+		"@types/node": "^22.15.3",
+		"typescript": "5.9.3"
+	}
+}

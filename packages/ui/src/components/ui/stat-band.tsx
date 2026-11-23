@@ -21,12 +21,12 @@ import { cn } from "../../lib/utils"
  *
  * ## How it behaves
  *
- * - **Phone (below `sm`)**: one horizontally scrolling row inside a `ScrollArea`. Each cell keeps
+ * - **Narrow band (a phone)**: one horizontally scrolling row inside a `ScrollArea`. Each cell keeps
  *   a fixed width and refuses to shrink, so five figures on a 360px screen scroll instead of
  *   crushing or stacking into five rows.
- * - **From `sm`**: a grid at `cols`. Dividers come from a right and bottom border on every cell,
- *   with the grid pulled 1px past the clipped container so the outer edges never double up.
- *   That works for any column count and any partial last row without per-breakpoint classes.
+ * - **Wider band**: a grid at `cols`, chosen by the BAND's own width (container query), with a
+ *   minimum cell width - so beside two sidebars six cells become 3 x 2 instead of six crushed ones.
+ *   Dividers are a box-shadow on every cell (see `Frame`), so any partial last row works.
  * - **The value never truncates.** Clipping a label shortens a word; clipping a figure changes
  *   it. The label truncates, the value wraps at a space if it must.
  * - **A `progress` cell draws a thin track under its value.** Only for a figure that IS a
@@ -40,7 +40,7 @@ import { cn } from "../../lib/utils"
  *
  *     <StatBand
  *         items={[
- *             { icon: Users, label: "Students", value: 162 },
+ *             { icon: Users, label: "Users", value: 162 },
  *             { icon: Activity, label: "Present", value: "89%", hint: "144 of 162" },
  *             { icon: AlertCircle, label: "Overdue", value: 7, tone: "rose", href: "/billing?f=overdue" },
  *         ]}
@@ -94,8 +94,8 @@ export interface StatBandItem {
 export interface StatBandProps extends Omit<React.HTMLAttributes<HTMLDivElement>, "children"> {
 	items: StatBandItem[]
 	/**
-	 * Grid columns from `sm` up. Defaults to the item count, capped at 6. Give the widest count;
-	 * the `sm` step is derived. Pass the same value to the skeleton.
+	 * Grid columns when the band is wide enough. Defaults to the item count, capped at 6. Give the widest
+	 * count; the narrower step is derived from the band's own width. Pass the same value to the skeleton.
 	 */
 	cols?: StatBandCols
 	/** `md` is the page-level band. `sm` is for a header row or a panel that holds other content. */
@@ -113,22 +113,45 @@ export interface StatBandProps extends Omit<React.HTMLAttributes<HTMLDivElement>
 
 export type StatBandCols = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8
 
-const COLS: Record<StatBandCols, string> = {
-	// A single figure is still a band, not a bare box - it just has one cell.
-	1: "sm:grid-cols-1",
-	2: "sm:grid-cols-2",
-	3: "sm:grid-cols-3",
-	4: "sm:grid-cols-2 lg:grid-cols-4",
-	5: "sm:grid-cols-3 lg:grid-cols-5",
-	6: "sm:grid-cols-3 lg:grid-cols-6",
-	7: "sm:grid-cols-4 lg:grid-cols-7",
-	8: "sm:grid-cols-4 lg:grid-cols-8",
+/*
+ * Columns by the band's OWN width (a container query), never the viewport's. A viewport breakpoint
+ * picked six columns at `lg` even when the band sat beside the main sidebar AND a module sidebar
+ * (~455px of rails), so six cells got ~155px each and "Not recorded" broke onto two lines under its
+ * icon (the owner, /finance, 2026-10-26). Each step now needs a minimum cell width - 12rem at `md`,
+ * 10rem at `sm` - so a cell is never squeezed below what a value plus its icon chip needs. Below the
+ * first step the band is the scrolling row. The grid switch sits in the same step as its first
+ * column count, so there is never a "grid with no columns" gap between them.
+ */
+// The wide steps (6-8 across) sit at about 10.5rem a cell: at 12rem a cell, a six-cell band on the standard max-w-7xl page
+// (1222px with the 17px root) missed "6 across" by 1.5px and wrapped to two rows of three (browser-pass backlog 2026-11-13).
+const COLS: Record<"md" | "sm", Record<StatBandCols, string>> = {
+	md: {
+		// A single figure is still a band, not a bare box - it just has one cell.
+		1: "@min-[12rem]:grid @min-[12rem]:[&>*]:w-auto @min-[12rem]:grid-cols-1",
+		2: "@min-[24rem]:grid @min-[24rem]:[&>*]:w-auto @min-[24rem]:grid-cols-2",
+		3: "@min-[36rem]:grid @min-[36rem]:[&>*]:w-auto @min-[36rem]:grid-cols-3",
+		4: "@min-[24rem]:grid @min-[24rem]:[&>*]:w-auto @min-[24rem]:grid-cols-2 @min-[48rem]:grid-cols-4",
+		5: "@min-[36rem]:grid @min-[36rem]:[&>*]:w-auto @min-[36rem]:grid-cols-3 @min-[60rem]:grid-cols-5",
+		6: "@min-[36rem]:grid @min-[36rem]:[&>*]:w-auto @min-[36rem]:grid-cols-3 @min-[64rem]:grid-cols-6",
+		7: "@min-[48rem]:grid @min-[48rem]:[&>*]:w-auto @min-[48rem]:grid-cols-4 @min-[74rem]:grid-cols-7",
+		8: "@min-[48rem]:grid @min-[48rem]:[&>*]:w-auto @min-[48rem]:grid-cols-4 @min-[84rem]:grid-cols-8",
+	},
+	sm: {
+		1: "@min-[10rem]:grid @min-[10rem]:[&>*]:w-auto @min-[10rem]:grid-cols-1",
+		2: "@min-[20rem]:grid @min-[20rem]:[&>*]:w-auto @min-[20rem]:grid-cols-2",
+		3: "@min-[30rem]:grid @min-[30rem]:[&>*]:w-auto @min-[30rem]:grid-cols-3",
+		4: "@min-[20rem]:grid @min-[20rem]:[&>*]:w-auto @min-[20rem]:grid-cols-2 @min-[40rem]:grid-cols-4",
+		5: "@min-[30rem]:grid @min-[30rem]:[&>*]:w-auto @min-[30rem]:grid-cols-3 @min-[50rem]:grid-cols-5",
+		6: "@min-[30rem]:grid @min-[30rem]:[&>*]:w-auto @min-[30rem]:grid-cols-3 @min-[60rem]:grid-cols-6",
+		7: "@min-[40rem]:grid @min-[40rem]:[&>*]:w-auto @min-[40rem]:grid-cols-4 @min-[70rem]:grid-cols-7",
+		8: "@min-[40rem]:grid @min-[40rem]:[&>*]:w-auto @min-[40rem]:grid-cols-4 @min-[80rem]:grid-cols-8",
+	},
 }
 
 /** `compact`: columns by the band's own width. Up to four cells share one row from 24rem; more wrap to a grid. */
 const COMPACT_COLS: Record<StatBandCols, string> = {
-	1: "@sm:grid-cols-1",
-	2: "@sm:grid-cols-2",
+	1: "@min-[18rem]:grid-cols-1",
+	2: "@min-[18rem]:grid-cols-2",
 	3: "@sm:grid-cols-3",
 	4: "@sm:grid-cols-4",
 	5: "@sm:grid-cols-3 @3xl:grid-cols-5",
@@ -201,8 +224,7 @@ function Frame({
 				// `overflow-hidden` is not cosmetic and applies to BOTH variants: every cell paints
 				// its own right and bottom hairline 1px OUTSIDE itself, so this is what trims the
 				// ones on the band's outer edge instead of letting them double the frame border.
-				"w-full min-w-0 shrink-0 overflow-hidden",
-				compact && "@container",
+				"@container w-full min-w-0 shrink-0 overflow-hidden",
 				!flush && "rounded-2xl border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-950",
 				className,
 			)}
@@ -234,9 +256,11 @@ function Frame({
 						 */
 						"[&>*]:shadow-[1px_1px_0_0_var(--color-neutral-200)]",
 						"dark:[&>*]:shadow-[1px_1px_0_0_var(--color-neutral-800)]",
-						// from sm: the grid, cells fill their column (compact: from the band's own 24rem)
-						compact ? "@sm:grid @sm:[&>*]:w-auto" : "sm:grid sm:[&>*]:w-auto",
-						compact ? COMPACT_COLS[cols] : COLS[cols],
+						// the grid, cells filling their column, once the band is wide enough (compact: from its own
+						// 24rem; one or two cells from 18rem - two 9rem cells fit, and in a narrow profile card the
+						// scrolling row left an empty strip beside them, browser pass 2026-11-15)
+						compact ? (cols <= 2 ? "@min-[18rem]:grid @min-[18rem]:[&>*]:w-auto" : "@sm:grid @sm:[&>*]:w-auto") : null,
+						compact ? COMPACT_COLS[cols] : COLS[size][cols],
 					)}
 				>
 					{children}

@@ -1,5 +1,5 @@
 /**
- * Fuzzy matching for search boxes - ported from synchq for the Inbox switcher (manual-pass R8-5).
+ * Fuzzy matching for search boxes - ported from an earlier project for an inbox switcher.
  *
  * A plain `includes()` fails the moment a user types a label without its spaces
  * - "mytasks" does not substring-match "My Tasks" - which is exactly the class
@@ -93,7 +93,7 @@ export function fuzzyScore(text: string, query: string): number {
 }
 
 /**
- * Synonym clusters for a school's conversations, so typing "parents" also finds "guardian" chats. Matches score at a
+ * Synonym clusters for conversations, so typing "parents" also finds "guardian" chats. Matches score at a
  * reduced weight and only when there is no direct hit.
  */
 const SYNONYM_CLUSTERS: string[][] = [

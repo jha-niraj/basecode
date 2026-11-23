@@ -5,7 +5,7 @@ import * as React from "react"
 import { Button } from "./button"
 
 /**
- * KEEP-OPEN LISTS (Niraj, 2026-10-24, "same experience all the other places"). A list whose rows open the non-modal
+ * KEEP-OPEN LISTS (the owner, 2026-10-24, "same experience all the other places"). A list whose rows open the non-modal
  * right Sheet marks every row `data-sheet-keep-open`, so pressing another row while the sheet is open SWAPS it to that
  * item instead of closing it (reference: `apps/main/app/(main)/settings/staffcredits`). Pressing empty space, the X or
  * Esc still closes.

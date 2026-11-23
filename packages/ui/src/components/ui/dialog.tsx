@@ -35,7 +35,7 @@ const DialogContent = React.forwardRef<
     /**
      * Drop the built-in top-right X.
      *
-     * For a dialog that draws its own window chrome - the student peek renders macOS-style
+     * For a dialog that draws its own window chrome - a record peek renders macOS-style
      * traffic lights in its top-left - the default X is a second, differently-placed close
      * control saying the same thing. Additive and opt-in: every existing dialog keeps its X.
      */

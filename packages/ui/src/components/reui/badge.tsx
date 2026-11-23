@@ -15,7 +15,7 @@ const badgeVariants = cva(
         default: "bg-primary text-primary-foreground",
         outline: "border-border bg-transparent dark:bg-input/32",
         secondary: "bg-secondary text-secondary-foreground",
-        // Gurukul palette (AGENTS.md "Colour"): ReUI's info/success/warning/
+        // House palette (AGENTS.md "Colour"): ReUI's info/success/warning/
         // focus/invert tokens do not exist here. Info and focus are neutral;
         // success is never a green surface, only emerald words on neutral.
         info: "bg-neutral-700 text-white dark:bg-neutral-300 dark:text-neutral-900",

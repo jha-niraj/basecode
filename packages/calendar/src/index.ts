@@ -1,4 +1,4 @@
-// @repo/calendar - shared Bikram Sambat (BS) / AD calendar logic for Gurukul.
+// @repo/calendar - shared Bikram Sambat (BS) / AD calendar logic.
 //
 //   import { formatSchoolDate, formatAcademicYear, type SchoolCalendarSystem } from '@repo/calendar';
 //   import { toNepalDateStr, nepalDayOfWeek } from '@repo/calendar';

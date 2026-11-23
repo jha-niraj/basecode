@@ -9,8 +9,8 @@ import { cn } from "../../lib/utils";
  *
  * ## The gap this fills
  *
- * Between clicking a student card and the sheet appearing there is a round trip - one to two
- * seconds on a cold Neon connection - and nothing on screen changed. Niraj, testing the Deck:
+ * Between clicking a record card and the sheet appearing there is a round trip - one to two
+ * seconds on a cold Neon connection - and nothing on screen changed. The owner, testing the Deck:
  * *"when we click on the cards on any panel which is opening the sheet which takes some time like
  * 1-2 sec so can we show the pulsating on that card which will say and look like something is
  * happening."*
@@ -59,7 +59,7 @@ export interface PendingRowProps extends React.ComponentProps<"div"> {
     muted?: boolean;
     /**
      * What is happening, for a screen reader. Announced politely while `pending`.
-     * Write it as the action, not the state: "Opening Nirajan Parajuli", not "Loading".
+     * Write it as the action, not the state: "Opening Jane Doe", not "Loading".
      */
     label?: string;
     /**

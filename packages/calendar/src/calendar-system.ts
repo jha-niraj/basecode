@@ -39,11 +39,11 @@ export const AD_MONTHS_SHORT = [
 ] as const;
 
 /**
- * The twelve months of the school's own year, in order, for a picker or a legend.
+ * The twelve months of the tenant's own year, in order, for a picker or a legend.
  *
  * Use this instead of writing a month array into a feature file. A hardcoded
- * `['January', ...]` is not a neutral default - on a Bikram Sambat school it names months the
- * school does not have, and when the label is what gets STORED (see the billing months picker)
+ * `['January', ...]` is not a neutral default - on a Bikram Sambat tenant it names months the
+ * tenant does not have, and when the label is what gets STORED (a billing months picker, say)
  * the wrong word ends up on a record.
  */
 export function schoolMonthNames(
@@ -55,9 +55,9 @@ export function schoolMonthNames(
 /**
  * The twelve months abbreviated, for somewhere narrow.
  *
- * Reach for this when the container is fixed and small. Measured case: the student attendance
+ * Reach for this when the container is fixed and small. Measured case: an attendance
  * heatmap gives each month a 36px gutter on a phone, sized against AD's "Sep" at ~24px - and on a
- * Bikram Sambat school NINE of the twelve full names overflowed it, "Baishakh" by 17px. The
+ * Bikram Sambat tenant NINE of the twelve full names overflowed it, "Baishakh" by 17px. The
  * abbreviations fit in ~28px, so the fix is a shorter label rather than 20px stolen from the grid
  * of dots beside it.
  */
@@ -68,7 +68,7 @@ export function schoolMonthNamesShort(
 }
 
 /**
- * Name the Nth month of the school's year. `index` is 1-based, so 1 is Baishakh on BS and
+ * Name the Nth month of the tenant's year. `index` is 1-based, so 1 is Baishakh on BS and
  * January on AD. Out-of-range input returns '-' rather than throwing or wrapping, because the
  * callers are rendering stored data that may predate any validation.
  */
@@ -321,7 +321,7 @@ export function getBsPartsFromAd(value: Date | string): {
 }
 
 /**
- * Maps the AD start year of a school session to the dominant BS year.
+ * Maps the AD start year of an academic session to the dominant BS year.
  * A Nepali session that starts in AD `adStartYear` (Baishakh ~ mid-April)
  * sits inside the BS year that is current around mid-year (July) of that AD year.
  */
@@ -331,7 +331,7 @@ export function adSessionToBsYear(adStartYear: number): number | null {
 }
 
 /**
- * Converts an academic-year label to the school's calendar system.
+ * Converts an academic-year label to the tenant's calendar system.
  * "2026-27" → BS "2083-84"; in AD the value is returned unchanged.
  * Accepts "YYYY", "YYYY-YY", "YYYY-YYYY", or "YYYY/YY" forms.
  */
@@ -367,9 +367,9 @@ export function getAdDateFromBs(year: number, month: number, day: number): Date 
 }
 
 /**
- * The calendar YEAR (not the academic year) that `value` falls in, in the school's calendar, as an
+ * The calendar YEAR (not the academic year) that `value` falls in, in the tenant's calendar, as an
  * AD range: `start` inclusive, `end` EXCLUSIVE. AD: 1 Jan to the next 1 Jan. BS: 1 Baishakh to the
- * next 1 Baishakh (mid-April). For "this year" counts, so a BS school counts its own year rather
+ * next 1 Baishakh (mid-April). For "this year" counts, so a BS tenant counts its own year rather
  * than the Gregorian one. Falls back to the AD year when the BS conversion is out of range.
  */
 export function getSchoolCalendarYearRange(
@@ -387,7 +387,7 @@ export function getSchoolCalendarYearRange(
 }
 
 /**
- * Compact display parts for a single date in the school's calendar system.
+ * Compact display parts for a single date in the tenant's calendar system.
  * weekday is always the real weekday; day/monthShort/year switch to BS when needed.
  * Used by week/day grid headers (lesson plan schedule, "this week" panels).
  */
@@ -420,7 +420,7 @@ export function getSchoolDateParts(
 }
 
 /**
- * The month and year a date falls in, IN the school's calendar system.
+ * The month and year a date falls in, IN the tenant's calendar system.
  *
  * `getSchoolDateParts` deliberately returns the month as a NAME, which is what a date label needs
  * and useless to anything that has to page through months or query a range. This returns the
@@ -445,13 +445,12 @@ export function getSchoolMonthYear(
 }
 
 /**
- * The calendar a school starts on, from its country (Niraj, 2026-10-14,
- * plan/repo/speed/query-audit.md "Calendar decisions"): Nepal runs on Bikram Sambat, everywhere
- * else on AD. ONE rule for onboarding, every school_settings row creation and every reader that
- * finds no row - so a Nepali school is never silently on AD because a later upsert created its
- * settings row with the column default. The principal's toggle still overrides it.
+ * The calendar a tenant starts on, from its country (the owner, 2026-10-14): Nepal runs on Bikram Sambat, everywhere
+ * else on AD. ONE rule for onboarding, every settings row creation and every reader that
+ * finds no row - so a Nepali tenant is never silently on AD because a later upsert created its
+ * settings row with the column default. The owner's toggle still overrides it.
  *
- * `country` is `schools.country` (ISO-3166 alpha-2). Unknown or empty is AD, the neutral choice.
+ * `country` is the tenant's country (ISO-3166 alpha-2). Unknown or empty is AD, the neutral choice.
  */
 export function defaultCalendarForCountry(country: string | null | undefined): SchoolCalendarSystem {
 	return country?.trim().toUpperCase() === 'NP' ? 'BS' : 'AD';
@@ -459,22 +458,22 @@ export function defaultCalendarForCountry(country: string | null | undefined): S
 
 /**
  * The weekly day off, 0=Sun ... 6=Sat. It follows the COUNTRY, never the calendar system: a
- * Nepali school that prefers AD dates still rests on Saturday. Nepal = Saturday; elsewhere Sunday
- * (the behaviour every AD school already had).
+ * Nepali tenant that prefers AD dates still rests on Saturday. Nepal = Saturday; elsewhere Sunday
+ * (the behaviour every AD tenant already had).
  */
 export function weekendDayForCountry(country: string | null | undefined): number {
 	return country?.trim().toUpperCase() === 'NP' ? 6 : 0;
 }
 
-/** The first day of the school week, 0=Sun ... 6=Sat. Nepal starts on Sunday, elsewhere Monday. */
+/** The first day of the week, 0=Sun ... 6=Sat. Nepal starts on Sunday, elsewhere Monday. */
 export function weekStartDayForCountry(country: string | null | undefined): number {
 	return country?.trim().toUpperCase() === 'NP' ? 0 : 1;
 }
 
 /**
- * Most-recent week-start for the school. Follows the COUNTRY (`schools.country`), not the calendar
+ * Most-recent week-start for the tenant. Follows the COUNTRY (the tenant's country), not the calendar
  * system: Nepal weeks begin Sunday, elsewhere Monday. It used to take the calendar system, so a
- * Nepali school on AD got a Monday week (and a Sunday weekend) - F4.
+ * Nepali tenant on AD got a Monday week (and a Sunday weekend) - F4.
  */
 export function getSchoolWeekStart(
 	value: Date | string,
@@ -491,7 +490,7 @@ export function getSchoolWeekStart(
 /**
  * Serialize a Date to a `YYYY-MM-DD` key using its LOCAL calendar day.
  *
- * Use this instead of `.toISOString().split('T')[0]` for any date that represents a school DAY
+ * Use this instead of `.toISOString().split('T')[0]` for any date that represents a calendar DAY
  * rather than an instant. The two disagree for every timezone ahead of UTC, and Nepal is +5:45:
  * `setHours(0,0,0,0)` produces local midnight, which `toISOString()` then renders as 18:15 UTC on
  * the PREVIOUS day, so the date key comes out one day early.

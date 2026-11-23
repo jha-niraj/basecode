@@ -1,171 +1,57 @@
 "use server"
 
 import { db } from "@repo/db"
-import { announcement, broadcast, adminAuditLog } from "@repo/db/schema"
-import { auth } from "@repo/auth"
-import { headers } from "next/headers"
-import { revalidatePath } from "next/cache"
-import { desc, eq } from "@repo/db"
+import { announcement, broadcast } from "@repo/db/schema"
+import { count, desc, gte, sql } from "@repo/db"
+import { errorText, requireAdminAction } from "./guard"
+import type { ActionResult as Result } from "@/types/communications"
 
-interface Response<T = unknown> {
-    success: boolean
-    data?: T
-    error?: string
+/**
+ * The communications overview's numbers. The list actions live in announcements.action.ts and broadcasts.action.ts
+ * (the older duplicate list / create actions that lived here were unused and are gone - each export is a public
+ * endpoint).
+ */
+export interface CommunicationsOverview {
+    announcements: { published: number; drafts: number; archived: number; createdLast30: number }
+    broadcasts: { drafts: number; sent: number; emailsSentLast30: number; createdLast30: number }
+    latest: { kind: "announcement" | "broadcast"; id: string; title: string; status: string; createdAt: string }[]
+    generatedAt: string
 }
 
-async function getAdminAccessRecord() {
-    const session = await auth.api.getSession({ headers: await headers() })
-    if (!session?.user?.id) return null
-    return db.query.adminAccess.findFirst({
-        where: (a, { eq }) => eq(a.userId, session.user.id),
-    })
-}
-
-// Announcements
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function getAnnouncements(): Promise<Response<any[]>> {
+export async function getCommunicationsOverview(): Promise<Result<CommunicationsOverview>> {
     try {
-        const admin = await getAdminAccessRecord()
-        if (!admin) return { success: false, error: "Not authenticated" }
+        await requireAdminAction("communications", "read")
+        const now = new Date()
+        const d30 = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
 
-        const items = await db.query.announcement.findMany({
-            orderBy: [desc(announcement.createdAt)],
-        })
-        return { success: true, data: items }
-    } catch (error) {
-        console.error("Get announcements error:", error)
-        return { success: false, error: "Failed to fetch announcements" }
-    }
-}
+        const [annByStatus, [ann30], brByStatus, [br30], [sent30], latestAnn, latestBr] = await Promise.all([
+            db.select({ status: announcement.status, c: count() }).from(announcement).groupBy(announcement.status),
+            db.select({ c: count() }).from(announcement).where(gte(announcement.createdAt, d30)),
+            db.select({ status: broadcast.status, c: count() }).from(broadcast).groupBy(broadcast.status),
+            db.select({ c: count() }).from(broadcast).where(gte(broadcast.createdAt, d30)),
+            db.select({ n: sql<number>`coalesce(sum(${broadcast.sentCount}), 0)::int` }).from(broadcast)
+                .where(gte(broadcast.sentAt, d30)),
+            db.query.announcement.findMany({ orderBy: [desc(announcement.createdAt)], limit: 5, columns: { id: true, title: true, status: true, createdAt: true } }),
+            db.query.broadcast.findMany({ orderBy: [desc(broadcast.createdAt)], limit: 5, columns: { id: true, subject: true, status: true, createdAt: true } }),
+        ])
+        const a = (s: string) => annByStatus.find((r) => r.status === s)?.c ?? 0
+        const b = (s: string) => brByStatus.find((r) => r.status === s)?.c ?? 0
 
-export async function createAnnouncement(input: {
-    title: string
-    content: string
-    priority?: string
-    status?: "DRAFT" | "PUBLISHED"
-    expiresAt?: Date
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-}): Promise<Response<any>> {
-    try {
-        const admin = await getAdminAccessRecord()
-        if (!admin) return { success: false, error: "Not authenticated" }
+        const latest = [
+            ...latestAnn.map((r) => ({ kind: "announcement" as const, id: r.id, title: r.title, status: r.status, createdAt: r.createdAt.toISOString() })),
+            ...latestBr.map((r) => ({ kind: "broadcast" as const, id: r.id, title: r.subject, status: r.status, createdAt: r.createdAt.toISOString() })),
+        ].sort((x, y) => y.createdAt.localeCompare(x.createdAt)).slice(0, 6)
 
-        const [item] = await db
-            .insert(announcement)
-            .values({
-                title: input.title,
-                content: input.content,
-                priority: input.priority ?? "normal",
-                status: input.status ?? "DRAFT",
-                authorId: admin.id,
-                publishedAt: input.status === "PUBLISHED" ? new Date() : null,
-                expiresAt: input.expiresAt ?? null,
-                createdAt: new Date(),
-                updatedAt: new Date(),
-            })
-            .returning()
-
-        await db.insert(adminAuditLog).values({
-            adminId: admin.id,
-            action: "CREATE",
-            module: "communications",
-            resourceType: "Announcement",
-            resourceId: item!.id,
-            description: `Created announcement: ${input.title}`,
-            createdAt: new Date(),
-        })
-
-        revalidatePath("/communications/announcements")
-        return { success: true, data: item }
-    } catch (error) {
-        console.error("Create announcement error:", error)
-        return { success: false, error: "Failed to create announcement" }
-    }
-}
-
-export async function updateAnnouncementStatus(
-    id: string,
-    status: "DRAFT" | "PUBLISHED" | "ARCHIVED",
-): Promise<Response> {
-    try {
-        const admin = await getAdminAccessRecord()
-        if (!admin) return { success: false, error: "Not authenticated" }
-
-        await db
-            .update(announcement)
-            .set({
-                status,
-                publishedAt: status === "PUBLISHED" ? new Date() : undefined,
-                updatedAt: new Date(),
-            })
-            .where(eq(announcement.id, id))
-
-        revalidatePath("/communications/announcements")
-        return { success: true }
-    } catch (error) {
-        console.error("Update announcement status error:", error)
-        return { success: false, error: "Failed to update announcement" }
-    }
-}
-
-export async function deleteAnnouncement(id: string): Promise<Response> {
-    try {
-        const admin = await getAdminAccessRecord()
-        if (!admin) return { success: false, error: "Not authenticated" }
-
-        await db.delete(announcement).where(eq(announcement.id, id))
-        revalidatePath("/communications/announcements")
-        return { success: true }
-    } catch (error) {
-        console.error("Delete announcement error:", error)
-        return { success: false, error: "Failed to delete announcement" }
-    }
-}
-
-// Broadcasts
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function getBroadcasts(): Promise<Response<any[]>> {
-    try {
-        const admin = await getAdminAccessRecord()
-        if (!admin) return { success: false, error: "Not authenticated" }
-
-        const items = await db.query.broadcast.findMany({
-            orderBy: [desc(broadcast.createdAt)],
-        })
-        return { success: true, data: items }
-    } catch (error) {
-        console.error("Get broadcasts error:", error)
-        return { success: false, error: "Failed to fetch broadcasts" }
-    }
-}
-
-export async function createBroadcast(input: {
-    subject: string
-    content: string
-    recipientType?: string
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-}): Promise<Response<any>> {
-    try {
-        const admin = await getAdminAccessRecord()
-        if (!admin) return { success: false, error: "Not authenticated" }
-
-        const [item] = await db
-            .insert(broadcast)
-            .values({
-                subject: input.subject,
-                content: input.content,
-                recipientType: input.recipientType ?? "all",
-                status: "DRAFT",
-                authorId: admin.id,
-                createdAt: new Date(),
-                updatedAt: new Date(),
-            })
-            .returning()
-
-        revalidatePath("/communications/broadcasts")
-        return { success: true, data: item }
-    } catch (error) {
-        console.error("Create broadcast error:", error)
-        return { success: false, error: "Failed to create broadcast" }
+        return {
+            success: true,
+            data: {
+                announcements: { published: a("PUBLISHED"), drafts: a("DRAFT"), archived: a("ARCHIVED"), createdLast30: ann30?.c ?? 0 },
+                broadcasts: { drafts: b("DRAFT"), sent: b("SENT"), emailsSentLast30: Number(sent30?.n ?? 0), createdLast30: br30?.c ?? 0 },
+                latest,
+                generatedAt: now.toISOString(),
+            },
+        }
+    } catch (err) {
+        return { success: false, error: errorText(err, "Could not load the communications overview") }
     }
 }

@@ -1,30 +1,16 @@
 import type { MetadataRoute } from "next"
+import { SITE } from "@repo/core/site"
 
+/** Icons: add real PNGs (192 and 512) to /public and list them with their true sizes - never a size the file is not. */
 export default function manifest(): MetadataRoute.Manifest {
     return {
-        name: "YourApp",
-        short_name: "YourApp",
-        description: "Your app description here.",
-        start_url: "/",
+        name: SITE.name,
+        short_name: SITE.name,
+        description: SITE.description,
+        start_url: "/ai",
         display: "standalone",
-        orientation: "portrait-primary",
-        background_color: "#F6F4EE",
-        theme_color: "#111211",
-        categories: ["productivity"],
-        icons: [
-            {
-                src: "/icon-192.png",
-                sizes: "192x192",
-                type: "image/png",
-                purpose: "maskable",
-            },
-            {
-                src: "/icon-512.png",
-                sizes: "512x512",
-                type: "image/png",
-                purpose: "any",
-            },
-        ],
-        screenshots: [],
+        background_color: "#ffffff",
+        theme_color: "#ffffff",
+        icons: [{ src: "/favicon.ico", sizes: "any", type: "image/x-icon" }],
     }
 }

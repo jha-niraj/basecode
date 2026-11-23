@@ -1,6 +1,6 @@
 /**
  * @repo/core/typed-fields - a question someone defines ("Do you have a bike?", yes / no) and the typed answer to it, shared
- * by every feature that lets a school ask its own questions (plan/main/settings/settings-manual-pass-2026-10-21.md D2).
+ * by every feature that lets a tenant ask its own questions.
  *
  * Pure - no React, no database. One definition (`FieldDef`), checked by one zod schema (`fieldDefSchema`) and one
  * plain-words check (`fieldDefProblem`); one reader that turns what was typed or said into a typed value
@@ -9,7 +9,7 @@
  * `@repo/ui/components/typed-fields/*`.
  *
  * Core stays free of the calendar package: reading a BS date needs a BS -> AD converter and showing a date in the
- * school's calendar needs a formatter, both passed in (`getAdDateFromBs` and `formatSchoolDate` from @repo/calendar).
+ * tenant's calendar needs a formatter, both passed in (`getAdDateFromBs` and `formatSchoolDate` from @repo/calendar).
  * Without the converter a date said as BS is refused, never guessed.
  *
  * Typed values: short / long text -> string, yes / no -> boolean, number -> number, date -> AD 'YYYY-MM-DD' string,
@@ -25,7 +25,7 @@ import { z } from 'zod';
 
 /** A BS -> AD converter, e.g. `getAdDateFromBs` from @repo/calendar (a local-midnight Date, or null when not a real BS date). */
 export type BsToAd = (year: number, month: number, day: number) => Date | null;
-/** Shows an AD 'YYYY-MM-DD' in the school's calendar, e.g. `(d) => formatSchoolDate(d, calendarSystem)` from @repo/calendar. */
+/** Shows an AD 'YYYY-MM-DD' in the tenant's calendar, e.g. `(d) => formatSchoolDate(d, calendarSystem)` from @repo/calendar. */
 export type FormatDate = (adIso: string) => string;
 
 // ─── Definitions ─────────────────────────────────────────────────────────────
@@ -131,7 +131,7 @@ export function tidyOptions(options: readonly string[] | undefined): string[] {
 
 /**
  * Limits a feature may widen. `maxOptions`: a feature whose choices are stored as their own rows and picked from a
- * list on screen (a school's bus routes) can hold more than the eight a question that is read out loud can.
+ * list on screen (a tenant's delivery routes) can hold more than the eight a question that is read out loud can.
  */
 export interface FieldDefLimits { maxOptions?: number }
 
@@ -472,7 +472,7 @@ export function answerText(def: Pick<FieldDef, 'type'>, value: TypedValue): stri
 }
 
 /**
- * A stored answer for people to read: Yes / No, a date in the school's calendar (`formatDate`; the AD date as stored
+ * A stored answer for people to read: Yes / No, a date in the tenant's calendar (`formatDate`; the AD date as stored
  * without it), the choices joined. Takes a typed value, or the text an older record kept (it is read again, and shown
  * as it was when it does not read).
  */

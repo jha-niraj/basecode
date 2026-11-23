@@ -13,6 +13,9 @@ const ScrollArea = React.forwardRef<
 		 *  bound it because the Viewport's `h-full` won't resolve against a max-height-only
 		 *  parent, so the Root just clips (no scroll). Constrain the Viewport instead.
 		 *
+		 *  NOT for spacing: `space-y-*` / `gap-*` here does nothing, because Radix wraps the children in ONE
+		 *  box - the sections inside touch. Put the spacing on a wrapper `<div>` inside (2026-10-28, five sheets).
+		 *
 		 *  THIS IS ALSO THE ANSWER INSIDE AN AUTO-HEIGHT BOX, and it took three wrong turns to
 		 *  find. In a container with `height: auto` there is nothing for a scroller to resolve a
 		 *  height against: `flex-1` computes to ZERO (basis 0%, no free space to grow into), and
@@ -78,7 +81,7 @@ const ScrollBar = React.forwardRef<
 		ref={ref}
 		orientation={orientation}
 		className={cn(
-			// Invisible everywhere (Niraj, 2026-10-20, manual pass M17: "It should not be visible at all ... scrolling
+			// Invisible everywhere (the owner, 2026-10-20, manual pass M17: "It should not be visible at all ... scrolling
 			// should just work"). The bar stays MOUNTED on purpose: Radix only lets the Viewport scroll on an axis while
 			// that axis's Scrollbar exists, so removing it would stop the scroll, not hide a bar. Wheel, trackpad, touch
 			// and keyboard all scroll the Viewport itself; nothing needs the thumb.

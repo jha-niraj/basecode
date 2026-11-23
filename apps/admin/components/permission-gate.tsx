@@ -1,9 +1,12 @@
 "use client"
 
+import { Home } from "lucide-react"
 import { useAdminAccess } from "@/context/admin-access-context"
-import type { AdminPermission, PermissionLevel } from "@/lib/navigation"
-import { ShieldOff } from "lucide-react"
-import Link from "next/link"
+import type { AdminPermission, PermissionLevel } from "@/lib/permissions"
+import { ROUTES } from "@/lib/navigation"
+import { AppLink } from "@repo/ui/components/app-link"
+import { Button } from "@repo/ui/components/ui/button"
+import { StatusView } from "@repo/ui/components/ui/status-view"
 
 interface PermissionGateProps {
     module: AdminPermission
@@ -12,40 +15,33 @@ interface PermissionGateProps {
     fallback?: React.ReactNode
 }
 
-function AccessDenied() {
+/**
+ * Hides a PART of a screen the admin cannot use (a write button, a section). A whole page is gated on the server
+ * with `requireAdminPage(module)`, which redirects to the 403 screen - never render a page and then hide it.
+ */
+export function PermissionGate({ module, level = "read", children, fallback }: PermissionGateProps) {
+    const { can } = useAdminAccess()
+    if (can(module, level)) return <>{children}</>
+    return <>{fallback ?? null}</>
+}
+
+/** The 403 screen inside the shell. */
+export function AccessDeniedView() {
     return (
-        <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-8">
-            <div className="w-14 h-14 rounded-2xl bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center mb-4">
-                <ShieldOff className="w-7 h-7 text-neutral-400" />
-            </div>
-            <h2 className="text-xl font-semibold text-neutral-900 dark:text-white mb-2">
-                Access restricted
-            </h2>
-            <p className="text-sm text-neutral-500 dark:text-neutral-400 mb-6 max-w-sm">
-                You don&apos;t have permission to view this page. Contact a super admin to request access.
-            </p>
-            <Link
-                href="/dashboard"
-                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-neutral-900 dark:bg-white dark:text-neutral-900 rounded-lg hover:bg-neutral-800 dark:hover:bg-neutral-100 transition-colors"
-            >
-                Back to dashboard
-            </Link>
-        </div>
+        <StatusView
+            kind="forbidden"
+            fullScreen={false}
+            description="This part of the console needs a permission you don't have. Ask a super admin for access."
+            actions={(
+                <Button asChild variant="outline" className="h-10 cursor-pointer gap-2 rounded-xl">
+                    <AppLink href={ROUTES.home}><Home className="h-4 w-4" /> Back to home</AppLink>
+                </Button>
+            )}
+        />
     )
 }
 
-export function PermissionGate({ module, level = "read", children, fallback }: PermissionGateProps) {
-    const { can, loading } = useAdminAccess()
-
-    // While loading, render nothing - the layout already shows a loader
-    if (loading) return null
-
-    if (can(module, level)) return <>{children}</>
-
-    return <>{fallback ?? <AccessDenied />}</>
-}
-
-/** Convenience hook - returns true if the current admin can perform this action. */
+/** Convenience hook - true if the current admin can do this. */
 export function useCanAccess(module: AdminPermission, level: PermissionLevel = "read"): boolean {
     const { can } = useAdminAccess()
     return can(module, level)

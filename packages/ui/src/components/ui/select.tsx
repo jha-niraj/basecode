@@ -53,12 +53,12 @@ const SelectTrigger = React.forwardRef<
       flex w-full items-center justify-between
       rounded-xl border
       bg-white dark:bg-neutral-900
-      border-gray-200 dark:border-neutral-700
+      border-neutral-200 dark:border-neutral-700
       px-3 font-medium
-      text-gray-700 dark:text-gray-200
+      text-neutral-700 dark:text-neutral-200
 
       transition-colors
-      hover:bg-gray-50 dark:hover:bg-neutral-800
+      hover:bg-neutral-50 dark:hover:bg-neutral-800
 
       focus-visible:outline-none
       focus-visible:border-neutral-400 dark:focus-visible:border-neutral-500
@@ -79,7 +79,7 @@ const SelectTrigger = React.forwardRef<
 		<SelectPrimitive.Icon asChild>
 			{/* shrink-0: the value is now flex-1, so without this the chevron is the thing that
 			    gets squashed when an option is long. */}
-			<ChevronDown className="h-4 w-4 shrink-0 text-gray-500 dark:text-gray-400" />
+			<ChevronDown className="h-4 w-4 shrink-0 text-neutral-500 dark:text-neutral-400" />
 		</SelectPrimitive.Icon>
 	</SelectPrimitive.Trigger>
 ))
@@ -95,7 +95,7 @@ const SelectScrollUpButton = React.forwardRef<
 	<SelectPrimitive.ScrollUpButton
 		ref={ref}
 		className={cn(
-			"flex items-center justify-center py-1 text-gray-500 dark:text-gray-400",
+			"flex items-center justify-center py-1 text-neutral-500 dark:text-neutral-400",
 			className
 		)}
 		{...props}
@@ -113,7 +113,7 @@ const SelectScrollDownButton = React.forwardRef<
 	<SelectPrimitive.ScrollDownButton
 		ref={ref}
 		className={cn(
-			"flex items-center justify-center py-1 text-gray-500 dark:text-gray-400",
+			"flex items-center justify-center py-1 text-neutral-500 dark:text-neutral-400",
 			className
 		)}
 		{...props}
@@ -128,7 +128,7 @@ SelectScrollDownButton.displayName =
  * Search inside a long Select.
  *
  * Past `SELECT_SEARCH_THRESHOLD` items the BASE SelectContent grows a search field of its own, so
- * every long data-driven list (students, staff, classes) gets search with no call-site change, and
+ * every long data-driven list (customers, staff, projects) gets search with no call-site change, and
  * a short list (Type, Status) renders exactly as before. `searchable` on SelectContent forces it on
  * or off; `searchPlaceholder` renames the field.
  *
@@ -257,8 +257,8 @@ function SelectSearchField({
 		if (inputRef.current?.isConnected) onOpened()
 	}, [inputRef, onOpened])
 	return (
-		<div className="flex shrink-0 items-center gap-2 border-b border-gray-200 px-3 dark:border-neutral-800">
-			<Search className="h-4 w-4 shrink-0 text-gray-400 dark:text-gray-500" aria-hidden="true" />
+		<div className="flex shrink-0 items-center gap-2 border-b border-neutral-200 px-3 dark:border-neutral-800">
+			<Search className="h-4 w-4 shrink-0 text-neutral-400 dark:text-neutral-500" aria-hidden="true" />
 			{/* `w-0 flex-1`: the field takes the width the list already has and never widens the
 			    popover by its own intrinsic size. */}
 			<input
@@ -271,7 +271,7 @@ function SelectSearchField({
 				autoComplete="off"
 				autoCorrect="off"
 				spellCheck={false}
-				className="h-9 w-0 min-w-0 flex-1 bg-transparent text-sm text-gray-700 outline-none placeholder:text-gray-400 dark:text-gray-200 dark:placeholder:text-gray-500"
+				className="h-9 w-0 min-w-0 flex-1 bg-transparent text-sm text-neutral-700 outline-none placeholder:text-neutral-400 dark:text-neutral-200 dark:placeholder:text-neutral-500"
 			/>
 		</div>
 	)
@@ -442,7 +442,7 @@ const SelectContent = React.forwardRef<
         z-[80] max-h-96 overflow-hidden
         rounded-xl border
         bg-white dark:bg-popover
-        border-gray-200 dark:border-neutral-800
+        border-neutral-200 dark:border-neutral-800
         shadow-xl
         `,
 					// The menu now arrives instead of appearing. POPPER_MOTION carries the exit
@@ -488,14 +488,14 @@ const SelectContent = React.forwardRef<
 						// a short message, but a real problem the moment either is longer: on a phone the
 						// box can run past the edge of whatever it is inside (a sheet, the viewport
 						// itself). Capping the width lets normal text wrapping do its job.
-						<div className="w-[min(20rem,calc(100vw-4rem))] select-none whitespace-normal px-3 py-6 text-center text-sm text-gray-500 dark:text-gray-400">
+						<div className="w-[min(20rem,calc(100vw-4rem))] select-none whitespace-normal px-3 py-6 text-center text-sm text-neutral-500 dark:text-neutral-400">
 							{emptyMessage}
 						</div>
 					) : filtered ? (
 						<>
 							{filtered.nodes}
 							{noMatch ? (
-								<div className="select-none px-3 py-6 text-center text-sm text-gray-500 dark:text-gray-400">
+								<div className="select-none px-3 py-6 text-center text-sm text-neutral-500 dark:text-neutral-400">
 									No match
 								</div>
 							) : null}
@@ -521,7 +521,7 @@ const SelectLabel = React.forwardRef<
 	<SelectPrimitive.Label
 		ref={ref}
 		className={cn(
-			"px-2 py-1.5 text-xs font-semibold text-gray-500 dark:text-gray-400",
+			"px-2 py-1.5 text-xs font-semibold text-neutral-500 dark:text-neutral-400",
 			className
 		)}
 		{...props}
@@ -554,14 +554,14 @@ const SelectItem = React.forwardRef<
 		ref={ref}
 		className={cn(
 			`
-      relative flex w-full cursor-pointer select-none items-center
+      relative flex w-full cursor-pointer select-none items-center gap-2 outline-none [&_svg]:shrink-0
       data-[gk-two-line=true]:items-start
       rounded-lg py-2 pl-8 pr-2 text-sm
-      text-gray-700 dark:text-gray-200
+      text-neutral-700 dark:text-neutral-200
 
       transition-colors duration-150
-      focus:bg-gray-100 dark:focus:bg-neutral-800
-      data-[state=checked]:bg-gray-200
+      focus:bg-neutral-100 dark:focus:bg-neutral-800
+      data-[state=checked]:bg-neutral-200
       dark:data-[state=checked]:bg-neutral-700
 
       data-[disabled]:pointer-events-none
@@ -576,13 +576,13 @@ const SelectItem = React.forwardRef<
 			{/* Radix only mounts the indicator once an item is selected, so this plays on the
 			    tick itself appearing - the row reads as being chosen rather than redrawn. */}
 			<SelectPrimitive.ItemIndicator className="animate-in fade-in-0 zoom-in-75 duration-150">
-				<Check className="h-4 w-4 text-gray-900 dark:text-white" />
+				<Check className="h-4 w-4 text-neutral-900 dark:text-white" />
 			</SelectPrimitive.ItemIndicator>
 		</span>
 		{description ? (
 			<span className="flex min-w-0 flex-col">
 				<SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
-				<span className="text-xs text-gray-500 dark:text-gray-400">{description}</span>
+				<span className="text-xs text-neutral-500 dark:text-neutral-400">{description}</span>
 			</span>
 		) : (
 			<SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
@@ -601,7 +601,7 @@ const SelectSeparator = React.forwardRef<
 	<SelectPrimitive.Separator
 		ref={ref}
 		className={cn(
-			"my-1 h-px bg-gray-200 dark:bg-neutral-700",
+			"my-1 h-px bg-neutral-200 dark:bg-neutral-700",
 			className
 		)}
 		{...props}

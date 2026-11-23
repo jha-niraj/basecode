@@ -1,0 +1,10 @@
+// Every table, one file per area. A new area adds its file here; nothing imports a schema file directly.
+export * from './core'
+export * from './ai'
+export * from './billing'
+export * from './cron'
+export * from './legal'
+export * from './erasure'
+export * from './payments'
+export * from './settings'
+export * from './notes'

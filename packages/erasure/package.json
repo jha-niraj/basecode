@@ -1,0 +1,26 @@
+{
+	"name": "@repo/erasure",
+	"version": "0.0.0",
+	"private": true,
+	"description": "Delete-my-account and tenant erasure",
+	"type": "module",
+	"main": "./src/index.ts",
+	"types": "./src/index.ts",
+	"exports": {
+		".": "./src/index.ts"
+	},
+	"scripts": {
+		"check-types": "tsc --noEmit"
+	},
+	"dependencies": {
+		"@repo/db": "workspace:*",
+		"@repo/storage": "workspace:*",
+		"drizzle-orm": "^0.45.4",
+		"@repo/errors": "workspace:*"
+	},
+	"devDependencies": {
+		"@repo/typescript-config": "workspace:*",
+		"@types/node": "^22.15.3",
+		"typescript": "5.9.3"
+	}
+}

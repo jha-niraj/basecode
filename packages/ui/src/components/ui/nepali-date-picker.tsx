@@ -180,7 +180,8 @@ export function NepaliDatePicker({
 }: NepaliDatePickerProps) {
     const [open, setOpen] = useState(false);
     const selected = parseIso(value);
-    const label = selected ? `${formatSchoolDate(selected, 'BS', { year: 'numeric', month: 'long' })} BS` : placeholder;
+    // The day too: "Mangsir 2083 BS" alone read as if no day had been picked.
+    const label = selected ? `${formatSchoolDate(selected, 'BS', { day: 'numeric', month: 'long', year: 'numeric' })} BS` : placeholder;
 
     return (
         <Popover open={open} onOpenChange={setOpen}>

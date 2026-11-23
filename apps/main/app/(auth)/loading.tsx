@@ -1,5 +1,5 @@
-import { PageLoader } from "@repo/ui/components/ui/loader"
+import { AuthFormSkeleton } from '@repo/auth/ui'
 
 export default function Loading() {
-    return <PageLoader />
+    return <AuthFormSkeleton fields={2} />
 }

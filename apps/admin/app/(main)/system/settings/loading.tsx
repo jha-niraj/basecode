@@ -1,5 +1,5 @@
-import { PageLoader } from "@repo/ui/components/ui/loader"
+import { SettingsSkeleton } from "./_components/settings-skeleton"
 
 export default function Loading() {
-    return <PageLoader />
+    return <SettingsSkeleton />
 }

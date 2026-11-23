@@ -2,6 +2,7 @@
 	"name": "@repo/errors",
 	"version": "0.0.0",
 	"private": true,
+	"description": "ActionResult with ok / fail / failWith, AppError, classifyError, isTransient, HTTP error mapping",
 	"type": "module",
 	"main": "./src/index.ts",
 	"types": "./src/index.ts",
@@ -15,7 +16,7 @@
 	"devDependencies": {
 		"@repo/typescript-config": "workspace:*",
 		"@types/node": "^22.15.3",
-		"typescript": "5.9.2",
+		"typescript": "5.9.3",
 		"@repo/eslint-config": "workspace:*"
 	}
 }

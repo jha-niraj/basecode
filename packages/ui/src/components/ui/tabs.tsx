@@ -38,7 +38,7 @@ export type TabsSize = "sm" | "default" | "lg"
  * ## What changed, and why the default moved
  *
  * The shape below was hand-rolled a FOURTH time - the Studio filter row - and that one is the one
- * Niraj picked out as the look the app should have. Rather than leave the component as the thing
+ * the owner picked out as the look the app should have. Rather than leave the component as the thing
  * people keep escaping, the escape became the default.
  *
  * The difference is the CONTAINER and the ACTIVE MARK, not the trigger:
@@ -142,7 +142,7 @@ const TabsList = React.forwardRef<
 					? `
       rounded-xl border
       bg-white dark:bg-neutral-900
-      border-gray-200 dark:border-neutral-700
+      border-neutral-200 dark:border-neutral-700
       overflow-hidden
       `
 					/*
@@ -230,10 +230,10 @@ const TabsTrigger = React.forwardRef<
 				/*
 				 * The ACTIVE label reads against the chip, so it inverts with it - and this has to
 				 * be stated PER VARIANT. The rule it replaces was one shared line written for the
-				 * grey fill (`data-[state=active]:text-gray-900 dark:...:text-white`); on an
+				 * grey fill (`data-[state=active]:text-neutral-900 dark:...:text-white`); on an
 				 * inverted chip that is white text on a white chip.
 				 */
-				variant === "card" && "data-[state=active]:text-gray-900 dark:data-[state=active]:text-white",
+				variant === "card" && "data-[state=active]:text-neutral-900 dark:data-[state=active]:text-white",
 				variant === "segmented" && [
 					"font-medium",
 					"data-[state=active]:text-white dark:data-[state=active]:text-neutral-900",
@@ -258,7 +258,7 @@ const TabsTrigger = React.forwardRef<
 							 * both grounds.
 							 */
 						variant === "card"
-							? "bg-gray-200 dark:bg-neutral-700"
+							? "bg-neutral-200 dark:bg-neutral-700"
 								: "bg-neutral-900 dark:bg-white",
 					)}
 					transition={{ type: "spring", stiffness: 420, damping: 34 }}

@@ -88,7 +88,7 @@ export function PanelHeaderTrigger({
                 // Sized to its CONTENT, never `flex-1`.
                 //
                 // It used to fill the header row, so the hover state was a 1,200px slab behind the
-                // word "Saathi" - a button whose hit area is the whole top of the screen reads as a
+                // assistant's name - a button whose hit area is the whole top of the screen reads as a
                 // header that has somehow been clicked, not as a control. `min-w-0` with `truncate`
                 // on the label still lets a long conversation title shrink rather than push the
                 // actions off the end.

@@ -1,23 +1,13 @@
-import type { PlatformBroadcast } from "@/actions/broadcasts.action"
+import type { Metadata } from "next"
 import { getBroadcasts } from "@/actions/broadcasts.action"
+import { requireAdminPage } from "@/lib/admin-session"
 import { BroadcastsClient } from "./_components/broadcasts-client"
-import { PermissionGate } from "@/components/permission-gate"
 
-export const dynamic = "force-dynamic"
-export const metadata = { title: "Broadcasts" }
+export const metadata: Metadata = { title: "Broadcasts" }
 
-export default async function BroadcastsPage() {
-    let broadcasts: PlatformBroadcast[] = []
-    let total = 0
-    try {
-        const data = await getBroadcasts(1, 50)
-        broadcasts = data.broadcasts
-        total = data.total
-    } catch { /* handled gracefully in client */ }
-
-    return (
-        <PermissionGate module="communications" level="read">
-            <BroadcastsClient broadcasts={broadcasts} total={total} />
-        </PermissionGate>
-    )
+export default async function BroadcastsPage({ searchParams }: { searchParams: Promise<{ tab?: string; open?: string }> }) {
+    await requireAdminPage("communications")
+    const [params, res] = await Promise.all([searchParams, getBroadcasts()])
+    if (!res.success) throw new Error(res.error)
+    return <BroadcastsClient initial={res.data} initialTab={params.tab} initialOpen={params.open ?? null} />
 }

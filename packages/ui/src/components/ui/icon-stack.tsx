@@ -91,7 +91,7 @@ function IconStackLayer({
 }
 
 /*
- * Gurukul additions (plan/repo/ui/reui-components-2026-10-23.md 2.5). The stack above is ReUI's as
+ * Local additions. The stack above is ReUI's as
  * shipped; these only package the colour and size choices so every screen picks from the same few.
  *
  * Tones follow the house palette: neutral ink by default, amber for a warning or the one accent.

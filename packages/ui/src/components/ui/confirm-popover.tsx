@@ -8,7 +8,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "./popover"
 import { DropdownMenuItem } from "./dropdown-menu"
 
 /**
- * CONFIRM IN PLACE (Niraj, 2026-10-20, R4-14): a small popover on the button that asked, for a one-item action with no
+ * CONFIRM IN PLACE (the owner, 2026-10-20, R4-14): a small popover on the button that asked, for a one-item action with no
  * cascade - delete this field, this room, this term. The centred dialog stays for deletes that remove many things or
  * can't be undone.
  *
@@ -112,7 +112,7 @@ export function ConfirmPopover({
 }
 
 /**
- * The same confirm, inside a dropdown menu (Niraj: "when I click on delete it could have come on the dropdown there
+ * The same confirm, inside a dropdown menu (the owner: "when I click on delete it could have come on the dropdown there
  * only"). First press turns the item into "Delete? Press again" and keeps the menu open; the second press runs it.
  * Moving away (pointer leaves the item or the menu closes) resets it.
  */

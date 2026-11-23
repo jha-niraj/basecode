@@ -1,5 +1,5 @@
-import { PageLoader } from "@repo/ui/components/ui/loader"
+import { TeamSkeleton } from "./_components/team-skeleton"
 
 export default function Loading() {
-    return <PageLoader />
+    return <TeamSkeleton />
 }

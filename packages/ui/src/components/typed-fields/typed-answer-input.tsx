@@ -1,8 +1,8 @@
 'use client';
 
 /**
- * The control for answering one typed question (plan/main/settings/settings-manual-pass-2026-10-21.md D2): a text
- * box, a longer text box, a number, the house date picker in the school's calendar, Yes / No, an email or phone box,
+ * The control for answering one typed question: a text
+ * box, a longer text box, a number, the house date picker in the tenant's calendar, Yes / No, an email or phone box,
  * choice chips (one, or several; or a numbered list or a dropdown - `variant`), or a document (a file plus its number
  * and expiry). Controlled; `value` is the typed
  * value (undefined = nothing yet). The caller still reads it with `validateAnswer` from @repo/core/typed-fields
@@ -11,7 +11,7 @@
  * A document needs `onUpload`: the kit never knows storage - the caller uploads the file and returns its key.
  */
 import { useRef, useState } from 'react';
-import { ArrowRight, Check, FileUp } from 'lucide-react';
+import { ArrowRight, Check, ChevronDown, FileUp } from 'lucide-react';
 import { Spinner } from '../ui/spinner';
 import { isDocumentValue, type DocumentValue, type FieldDef, type TypedValue } from '@repo/core/typed-fields';
 import { Button } from '../ui/button';
@@ -31,7 +31,7 @@ export interface TypedAnswerInputProps {
     def: Pick<FieldDef, 'type' | 'label' | 'options' | 'min' | 'max' | 'maxLength' | 'placeholder'>;
     value: TypedValue | undefined;
     onChange: (value: TypedValue | undefined) => void;
-    /** The school's calendar - the date picker shows BS or AD; the value is an AD 'YYYY-MM-DD' either way. */
+    /** The calendar - the date picker shows BS or AD; the value is an AD 'YYYY-MM-DD' either way. */
     calendar?: 'AD' | 'BS';
     /** ISO-2 country the phone box starts on; defaults to the app's SchoolCountryProvider, else NP. */
     phoneCountry?: string;
@@ -44,6 +44,8 @@ export interface TypedAnswerInputProps {
      * one choice or yes / no - the row is picked first, then this runs (a chat card uses it to move to the next question).
      */
     onEnter?: () => void;
+    /** A single choice was picked by click: the host may move on (a stepped chat card). */
+    onPicked?: () => void;
     /**
      * How one choice, several choices and yes / no look: `chips` (the default) - pills in a wrapping line; `rows` - a
      * numbered list, one choice per line with its hint under it (a short list of readings in a chat card); `dropdown` -
@@ -58,7 +60,7 @@ export interface TypedAnswerInputProps {
 }
 
 export function TypedAnswerInput(props: TypedAnswerInputProps) {
-    const { def, value, onChange, calendar = 'AD', id, autoFocus, disabled, onEnter, className, variant = 'chips', optionHints } = props;
+    const { def, value, onChange, calendar = 'AD', id, autoFocus, disabled, onEnter, onPicked, className, variant = 'chips', optionHints } = props;
     const placeholder = props.placeholder ?? def.placeholder;
     const enter = (e: React.KeyboardEvent) => { if (e.key === 'Enter' && onEnter) { e.preventDefault(); onEnter(); } };
     switch (def.type) {
@@ -66,7 +68,7 @@ export function TypedAnswerInput(props: TypedAnswerInputProps) {
             return <Textarea id={id} value={typeof value === 'string' ? value : ''} onChange={(e) => onChange(e.target.value || undefined)}
                 rows={3} maxLength={def.maxLength} disabled={disabled} placeholder={placeholder} autoFocus={autoFocus} className={cn('rounded-xl text-sm', className)} />;
         case 'phone':
-            // The house country-code phone box (E.164 out), defaulting to the school's country when the caller knows it.
+            // The house country-code phone box (E.164 out), defaulting to the tenant's country when the caller knows it.
             return <PhoneInput id={id} value={typeof value === 'string' ? value : ''} onChange={(v) => onChange(v || undefined)}
                 defaultCountry={props.phoneCountry} disabled={disabled} placeholder={placeholder ?? undefined}
                 autoFocus={autoFocus} className={className} />;
@@ -103,7 +105,7 @@ export function TypedAnswerInput(props: TypedAnswerInputProps) {
             );
         case 'single_choice':
             if (variant === 'rows') return <ChoiceRows label={def.label} options={def.options ?? []} hints={optionHints} picked={typeof value === 'string' ? [value] : []}
-                onPick={onChange} disabled={disabled} onEnter={onEnter} className={className} />;
+                onPick={onChange} disabled={disabled} onEnter={onEnter} onPicked={onPicked} className={className} />;
             if (variant === 'dropdown') {
                 return (
                     <Select value={typeof value === 'string' ? value : ''} disabled={disabled} onValueChange={(v) => onChange(v || undefined)}>
@@ -159,23 +161,30 @@ export function TypedAnswerInput(props: TypedAnswerInputProps) {
  * `onEnter`, moves on with Enter or a double click; several choices toggle and never move on (moving on after the
  * first tick would end the question at one choice).
  */
-function ChoiceRows({ label, options, hints, picked, multi, onPick, disabled, onEnter, className }: {
+function ChoiceRows({ label, options, hints, picked, multi, onPick, disabled, onEnter, onPicked, className }: {
     label: string; options: readonly string[]; hints?: Record<string, string>; picked: readonly string[]; multi?: boolean;
-    onPick: (option: string) => void; disabled?: boolean; onEnter?: () => void; className?: string;
+    onPick: (option: string) => void; disabled?: boolean; onEnter?: () => void; onPicked?: () => void; className?: string;
 }) {
     const advances = !multi && onEnter;
+    // A long option (or one with a detail line) opens like an accordion to be read in full before it is picked - a cut
+    // "Group A: 10 MCQ x 1 mark, Group B: 8 shor..." cannot be judged (the owner, 2026-11-15).
+    const [open, setOpen] = useState<Record<string, boolean>>({});
     return (
         <div role={multi ? 'group' : 'radiogroup'} aria-label={label} className={cn('flex flex-col', className)}>
             {options.map((o, i) => {
                 const on = picked.includes(o);
                 const hint = hints?.[o];
+                const long = o.length > 38 || (hint?.length ?? 0) > 44;
+                const shown = !!open[o];
                 return (
-                    <button key={o} type="button" role={multi ? 'checkbox' : 'radio'} aria-checked={on} disabled={disabled}
-                        onClick={() => onPick(o)}
+                    <div key={o} className="flex items-start gap-1">
+                    <button type="button" role={multi ? 'checkbox' : 'radio'} aria-checked={on} disabled={disabled}
+                        // A single choice clicked moves on by itself when the host asks (a beat later, so the pick is seen).
+                        onClick={() => { onPick(o); if (!multi && onPicked) window.setTimeout(onPicked, 180); }}
                         onDoubleClick={advances || undefined}
                         onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); onPick(o); if (advances) advances(); } }}
                         className={cn(
-                            'flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-60',
+                            'flex min-w-0 flex-1 cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-60',
                             'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400 dark:focus-visible:ring-neutral-500',
                             on ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900' : 'hover:bg-neutral-100 dark:hover:bg-neutral-800/60',
                         )}>
@@ -184,11 +193,19 @@ function ChoiceRows({ label, options, hints, picked, multi, onPick, disabled, on
                             {i + 1}
                         </span>
                         <span className="min-w-0 flex-1">
-                            <span className={cn('block truncate text-sm', on ? 'font-medium' : 'text-neutral-800 dark:text-neutral-200')}>{o}</span>
-                            {hint && <span className={cn('block truncate text-xs', on ? 'text-white/70 dark:text-neutral-900/70' : 'text-neutral-500 dark:text-neutral-400')}>{hint}</span>}
+                            <span className={cn('block text-sm', shown ? 'whitespace-normal break-words' : 'truncate', on ? 'font-medium' : 'text-neutral-800 dark:text-neutral-200')}>{o}</span>
+                            {hint && <span className={cn('block text-xs', shown ? 'mt-0.5 whitespace-normal break-words' : 'truncate', on ? 'text-white/70 dark:text-neutral-900/70' : 'text-neutral-500 dark:text-neutral-400')}>{hint}</span>}
                         </span>
                         {on && (multi ? <Check className="h-4 w-4 shrink-0" /> : <ArrowRight className="h-4 w-4 shrink-0" />)}
                     </button>
+                    {long && (
+                        <button type="button" onClick={() => setOpen((m) => ({ ...m, [o]: !m[o] }))} aria-expanded={shown}
+                            aria-label={shown ? 'Show less' : 'Read the whole option'} title={shown ? 'Show less' : 'Read the whole option'}
+                            className="mt-1 flex h-7 w-7 shrink-0 cursor-pointer items-center justify-center rounded-lg text-neutral-500 hover:bg-neutral-100 hover:text-neutral-800 dark:text-neutral-400 dark:hover:bg-neutral-800/60 dark:hover:text-neutral-200">
+                            <ChevronDown className={cn('h-4 w-4 transition-transform', shown && 'rotate-180')} />
+                        </button>
+                    )}
+                    </div>
                 );
             })}
         </div>

@@ -37,13 +37,13 @@ import { ScrollArea } from "./scroll-area"
 export type { PhoneCountry }
 
 /**
- * The countries a phone number may be in, for now (Niraj, 2026-10-22: Nepal and India only). One list, so widening it
+ * The countries a phone number may be in, for now (the owner, 2026-10-22: Nepal and India only). One list, so widening it
  * later is this line. A caller can still pass its own `countries`.
  */
 export const PHONE_COUNTRY_CODES: PhoneCountry[] = ["NP", "IN"]
 
 /**
- * The school's country (ISO-2), so every phone box in an app starts on it without each caller passing it. The app shell
+ * The tenant's country (ISO-2), so every phone box in an app starts on it without each caller passing it. The app shell
  * provides it (apps/main (main)/layout); outside a provider the box starts on Nepal.
  */
 const SchoolCountryContext = createContext<string | null>(null)

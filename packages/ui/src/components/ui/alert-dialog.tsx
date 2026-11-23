@@ -7,9 +7,9 @@ import { cn } from "../../lib/utils"
 import { buttonVariants } from "./button"
 
 /*
- * AlertDialog - the centred dialog for BIG or IRREVERSIBLE actions only (delete a class with its
- * students, void a receipt, refund, ban a user). Routine one-item confirms stay in a
- * `ConfirmPopover` on the button (Niraj, 2026-10-20).
+ * AlertDialog - the centred dialog for BIG or IRREVERSIBLE actions only (delete a project with its
+ * records, void a receipt, refund, ban a user). Routine one-item confirms stay in a
+ * `ConfirmPopover` on the button (the owner, 2026-10-20).
  *
  * Look follows ReUI's alert-dialog (radix-nova): rounded-2xl panel, an optional icon chip
  * (`AlertDialogMedia`, tone rose / amber / neutral), `size="sm"` for a compact stacked layout,

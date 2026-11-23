@@ -26,11 +26,11 @@ export type NavCommandItem = {
 	 * Stable identity, when `href` is not unique.
 	 *
 	 * Most items ARE their route, so this is usually omitted. It exists for an item that runs
-	 * something instead of navigating - "Add Student" opens a sheet and shares `/students` with
-	 * "All Students", so keying on href alone would collapse the two into one row.
+	 * something instead of navigating - "Add Customer" opens a sheet and shares `/customers` with
+	 * "All Customers", so keying on href alone would collapse the two into one row.
 	 *
 	 * Safe to make anything: cmdk scores an item by its keywords, deliberately NOT by this
-	 * value, so an id like `action:add-student` cannot produce a false search hit.
+	 * value, so an id like `action:add-customer` cannot produce a false search hit.
 	 */
 	id?: string
 	/** Optional group heading + subtitle (e.g. the parent section name). */
@@ -44,7 +44,7 @@ export type NavCommandItem = {
 	 * never a marketing label. "new" reads amber, "beta" orange, anything else neutral.
 	 */
 	badge?: string
-	/** Muted text after the label (a person's student id or employee id). */
+	/** Muted text after the label (a person's customer id or employee id). */
 	description?: string
 	/** Right-aligned meta (a class, a job, a count). In search results the section stands in when unset. */
 	meta?: string
@@ -115,7 +115,7 @@ function pathWords(href: string): string[] {
 }
 
 /**
- * Score an item for the flat, globally sorted results list (manual-pass R10-4, Niraj: "payments" found nothing).
+ * Score an item for the flat, globally sorted results list (manual-pass R10-4, the owner: "payments" found nothing).
  *
  * Ranking tiers, each well above the next: the label equal to the query, then the label containing it (prefix and word
  * starts score higher - that is the shared fuzzyScore's substring tier), then a section / keyword / address hit, then

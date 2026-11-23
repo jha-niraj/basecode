@@ -10,8 +10,8 @@ import { Input } from './input';
 export const NEPAL_PROVINCES: Record<string, string[]> = {
     // JHAPA WAS MISSING. Found by counting: this map held 76 districts and Nepal has 77, and the
     // one absent was one of the largest in the country (Birtamod, Damak, Bhadrapur). Any picker
-    // built on this - including the school and volunteer forms on /yatra - simply could not accept
-    // a school from Jhapa.
+    // built on this - including the signup forms of an earlier project - simply could not accept
+    // an address in Jhapa.
     'Koshi Province': [
         'Bhojpur', 'Dhankuta', 'Ilam', 'Jhapa', 'Khotang', 'Morang', 'Okhaldhunga',
         'Panchthar', 'Sankhuwasabha', 'Solukhumbu', 'Sunsari', 'Taplejung',

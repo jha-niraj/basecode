@@ -1,10 +1,11 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { AlertTriangle, RotateCcw, DatabaseZap } from 'lucide-react';
+import { RotateCcw } from 'lucide-react';
 import { classifyError } from '@repo/errors';
 import { Button } from './button';
 import { Spinner } from './spinner';
+import { StatusView } from './status-view';
 
 /**
  * The ONE server-component error boundary view, shared by every app.
@@ -18,10 +19,10 @@ import { Spinner } from './spinner';
  *
  * Behavior:
  *   - Classifies the thrown error via @repo/errors (single source of truth).
- *   - For a transient/`network` error: shows a calm amber "Reconnecting…" screen
+ *   - For a transient/`network` error: shows "Reconnecting..." over the plug scene
  *     and AUTO-RETRIES ONCE (compute is usually warm by then, so the user often
  *     never sees this). NEVER prints the raw message (it can contain SQL).
- *   - For anything else: a red "Something went wrong" with the safe message.
+ *   - For anything else: "Something went wrong" with the safe message, over the plug scene (status-view.tsx).
  *   - Shows `error.digest` as a copyable "Error ID" for support.
  */
 export function AppErrorView({
@@ -67,36 +68,23 @@ export function AppErrorView({
         reset();
     };
 
+    // The plug eases back into its socket (status-view.tsx) - inside the
+    // shell, so not full screen. A transient blip says "Reconnecting" and retries once by itself.
     return (
-        <div className="flex min-h-[60dvh] flex-col items-center justify-center gap-4 p-8 text-center">
-            <div className={`flex h-14 w-14 items-center justify-center rounded-2xl ${transient ? 'bg-amber-50 dark:bg-amber-950/30' : 'bg-red-50 dark:bg-red-950/30'}`}>
-                {transient
-                    ? <DatabaseZap className="h-7 w-7 text-amber-500" />
-                    : <AlertTriangle className="h-7 w-7 text-red-500" />}
-            </div>
-            <div>
-                <h2 className="text-lg font-semibold text-neutral-900 dark:text-white">
-                    {transient ? 'Reconnecting…' : (title ?? 'Something went wrong')}
-                </h2>
-                <p className="mt-1 max-w-md text-sm text-neutral-600 dark:text-neutral-300">
-                    {transient
-                        ? 'We had trouble reaching the server for a moment. This usually clears up on its own - retrying now.'
-                        : safeMessage}
-                </p>
-                {error.digest && (
-                    <p className="mt-1 font-mono text-sm text-neutral-500 dark:text-neutral-400">Error ID: {error.digest}</p>
-                )}
-            </div>
-            <Button
-                variant="outline"
-                size="sm"
-                onClick={handleRetry}
-                disabled={retrying}
-                className="gap-2 rounded-full"
-            >
-                {retrying ? <Spinner className="size-3.5" /> : <RotateCcw className="h-3.5 w-3.5" />}
-                {retrying ? 'Retrying…' : 'Try again'}
-            </Button>
-        </div>
+        <StatusView
+            kind="error"
+            fullScreen={false}
+            title={transient ? 'Reconnecting...' : (title ?? 'Something went wrong')}
+            description={transient
+                ? 'We had trouble reaching the server for a moment. This usually clears up on its own - retrying now.'
+                : safeMessage}
+            digest={error.digest}
+            actions={(
+                <Button variant="outline" onClick={handleRetry} disabled={retrying} className="h-10 gap-2 rounded-xl">
+                    {retrying ? <Spinner className="size-3.5" /> : <RotateCcw className="h-3.5 w-3.5" />}
+                    {retrying ? 'Retrying...' : 'Try again'}
+                </Button>
+            )}
+        />
     );
 }

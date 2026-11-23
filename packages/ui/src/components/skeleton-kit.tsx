@@ -83,7 +83,7 @@ export function PageSkeleton({
 /**
  * The height-bounded page root used by pages that scroll their content internally.
  *
- * The height comes from `--gk-page-h`, which each app's shell publishes because the shell is
+ * The height comes from `--app-page-h`, which each app's shell publishes because the shell is
  * the only element that knows every term (its own margin, its border or ring, and any padding
  * or mobile header offset it adds). A skeleton that re-derived that sum would drift the moment
  * the shell's chrome changed - and being even 2px over is enough to scroll the shell. The
@@ -107,7 +107,7 @@ export function BoundedPageSkeleton({
      * flow below it.
      *
      * `'lg'` exists because a family of finance and billing pages carries a deliberate,
-     * pixel-measured mobile fix - `lg:h-[var(--gk-page-h)] lg:overflow-hidden` - after their
+     * pixel-measured mobile fix - `lg:h-[var(--app-page-h)] lg:overflow-hidden` - after their
      * fixed-height roots were found clipping real content on a phone (Salaries: 1120px of content
      * against a 536px bound). This component had only an all-or-nothing bound, so every page that
      * got that fix silently desynced from its own skeleton the moment it landed: below `lg` the
@@ -126,9 +126,9 @@ export function BoundedPageSkeleton({
             className={cn(
                 "flex flex-col gap-4",
                 bounded === 'lg'
-                    ? "lg:h-[var(--gk-page-h,calc(100dvh-2.5rem))] lg:overflow-hidden"
+                    ? "lg:h-[var(--app-page-h,calc(100dvh-2.5rem))] lg:overflow-hidden"
                     : bounded
-                        ? "h-[var(--gk-page-h,calc(100dvh-2.5rem))] overflow-hidden"
+                        ? "h-[var(--app-page-h,calc(100dvh-2.5rem))] overflow-hidden"
                         : "",
                 className,
             )}
@@ -752,7 +752,7 @@ export function PanelSkeleton({
  * still jumps when the data lands.
  *
  * This is the shape behind the notifications list, the chat history dropdown, a document picker and
- * a student picker: an optional leading mark, a strong line, and an optional weaker one under it.
+ * a person picker: an optional leading mark, a strong line, and an optional weaker one under it.
  */
 export function RowListSkeleton({
     count = 5,

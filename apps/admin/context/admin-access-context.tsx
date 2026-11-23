@@ -1,21 +1,20 @@
 "use client"
 
-import { createContext, useContext, useEffect, useState } from "react"
-import { getCurrentAdmin } from "@/actions/admin.action"
+import { createContext, useContext, useMemo } from "react"
 import {
-    defaultPermissionsByRole,
-    hasPermission,
-    type AdminPermissions,
+    adminCan,
     type AdminPermission,
+    type AdminPermissions,
     type PermissionLevel,
-} from "@/lib/navigation"
+} from "@/lib/permissions"
 
 interface AdminAccessContextValue {
     adminRole: string | null
     permissions: AdminPermissions
     isSuperAdmin: boolean
+    /** Kept for older call sites; the value is seeded by the server layout, so it is never loading. */
     loading: boolean
-    /** Check if the current admin can perform an action on a module. */
+    /** Can the current admin do this on that module? */
     can: (module: AdminPermission, level?: PermissionLevel) => boolean
 }
 
@@ -23,43 +22,27 @@ const AdminAccessContext = createContext<AdminAccessContextValue>({
     adminRole: null,
     permissions: {},
     isSuperAdmin: false,
-    loading: true,
+    loading: false,
     can: () => false,
 })
 
-export function AdminAccessProvider({ children }: { children: React.ReactNode }) {
-    const [adminRole, setAdminRole] = useState<string | null>(null)
-    const [permissions, setPermissions] = useState<AdminPermissions>({})
-    const [loading, setLoading] = useState(true)
-
-    useEffect(() => {
-        getCurrentAdmin().then((res) => {
-            if (res.success && res.data) {
-                const role = res.data.role as string
-                setAdminRole(role)
-                // SUPER_ADMIN gets full default permissions regardless of DB value
-                setPermissions(
-                    role === "SUPER_ADMIN"
-                        ? defaultPermissionsByRole["SUPER_ADMIN"]!
-                        : ((res.data.permissions as AdminPermissions | undefined) ?? {}),
-                )
-            }
-            setLoading(false)
-        })
-    }, [])
-
-    const isSuperAdmin = adminRole === "SUPER_ADMIN"
-
-    const can = (module: AdminPermission, level: PermissionLevel = "read"): boolean => {
-        if (isSuperAdmin) return true
-        return hasPermission(permissions, module, level)
-    }
-
-    return (
-        <AdminAccessContext.Provider value={{ adminRole, permissions, isSuperAdmin, loading, can }}>
-            {children}
-        </AdminAccessContext.Provider>
-    )
+/**
+ * The admin's role and permissions for client components. Seeded by the server layout (`getAdmin()`), so the first
+ * frame already knows what to show - no effect, no fetch, no flash of a hidden button.
+ */
+export function AdminAccessProvider({ role, permissions, children }: {
+    role: string
+    permissions: AdminPermissions
+    children: React.ReactNode
+}) {
+    const value = useMemo<AdminAccessContextValue>(() => ({
+        adminRole: role,
+        permissions,
+        isSuperAdmin: role === "SUPER_ADMIN",
+        loading: false,
+        can: (module, level = "read") => adminCan({ role, permissions }, module, level),
+    }), [role, permissions])
+    return <AdminAccessContext.Provider value={value}>{children}</AdminAccessContext.Provider>
 }
 
 export function useAdminAccess() {

@@ -1,26 +1,15 @@
-// Server-side exports - only import in server components / server actions
-export { auth } from './auth'
-export type { Session, User } from './auth'
+/**
+ * @repo/auth - server entry. Import only from server components, server actions and route handlers.
+ *
+ *   import { auth } from '@repo/auth'                     the better-auth instance (auth.api.*)
+ *   import { getSession, requireSession } from '@repo/auth/next'
+ *   import { authClient, signIn, useSession, useSignOut } from '@repo/auth/client'
+ *   import { safeReturnTo } from '@repo/auth/return-to'
+ *   import { isSignedIn } from '@repo/auth/middleware'   cookie-only, for middleware.ts
+ *   import { SIGN_OUT_PATH, signOutResponse, ... } from '@repo/auth/sign-out'   for worker.ts
+ */
+export { auth, isGoogleConfigured } from './server'
+export type { Auth, Session, SessionUser } from './server'
 
-// Session helpers
-export { getServerSession, requireServerSession } from './get-server-session'
-
-// Email templates (server-side only)
-export { welcomeEmail, passwordChangedEmail, resetPasswordEmail, verifyEmailTemplate } from './email-templates'
-
-// Password hashing - use these instead of bcrypt so hashes match Better Auth's format
-// Better Auth uses scrypt (node:crypto) not bcrypt
-export { hashPassword, verifyPassword } from 'better-auth/crypto'
-
-// Next.js route handler helper
-export { toNextJsHandler } from 'better-auth/next-js'
-
-// =========================================================
-// IMPORTANT: Separate imports for different contexts
-// =========================================================
-// For MIDDLEWARE (Edge Runtime):
-//   import { authMiddleware } from '@repo/auth/middleware'
-//
-// For CLIENT components ('use client'):
-//   import { authClient, signIn, signOut, signUp, useSession } from '@repo/auth/client'
-// =========================================================
+// Passwords live in @repo/crypto/password; re-exported for callers that already import them from here.
+export { hashPassword, verifyPassword } from '@repo/crypto/password'

@@ -1,24 +1,20 @@
 /**
- * Seeds the super admin account.
+ * Seeds the super admin. Idempotent: run it as often as you like.
  *
- * Credentials created:
- *   Email:    superadmin@admin.com
- *   Password: Admin@1234
+ *   SEED_ADMIN_EMAIL     default superadmin@example.com
+ *   SEED_ADMIN_PASSWORD  if unset, a random one is generated and printed ONCE
  *
- * Run: pnpm --filter @repo/db db:seed
+ * No password lives in this file: a committed default is a password every clone shares.
+ * Run: pnpm db:seed (reads apps/main/.env.local)
  */
 
-import { drizzle } from 'drizzle-orm/postgres-js'
-import postgres from 'postgres'
-import { hashPassword } from 'better-auth/crypto'
-import * as schema from './schema'
-import { eq } from 'drizzle-orm'
+import { randomBytes } from 'node:crypto'
+import { hashPassword } from '@repo/crypto/password'
+import { db } from './client'
+import * as schema from './schema/index'
 
-const client = postgres(process.env.DATABASE_URL!)
-const db = drizzle(client, { schema })
-
-const EMAIL = 'superadmin@admin.com'
-const PASSWORD = 'Admin@1234'
+const EMAIL = process.env.SEED_ADMIN_EMAIL || 'superadmin@example.com'
+const PASSWORD = process.env.SEED_ADMIN_PASSWORD || randomBytes(9).toString('base64url')
 const USER_ID = 'seed-superadmin-001'
 
 async function seed() {
@@ -31,12 +27,10 @@ async function seed() {
 
     if (existing) {
         console.log('Super admin already exists. Skipping.')
-        await client.end()
         return
     }
 
-    // Use Better Auth's own hashPassword so the format matches what Better Auth
-    // expects when verifying during sign-in (scrypt, not bcrypt).
+    // The one password format (@repo/crypto/password): better-auth is configured to read it.
     const hashedPassword = await hashPassword(PASSWORD)
 
     // 1 - User record
@@ -78,11 +72,9 @@ async function seed() {
         updatedAt: new Date(),
     })
 
-    console.log('✓ Super admin seeded successfully')
+    console.log('Super admin seeded')
     console.log(`  Email:    ${EMAIL}`)
-    console.log(`  Password: ${PASSWORD}`)
-
-    await client.end()
+    console.log(process.env.SEED_ADMIN_PASSWORD ? '  Password: (from SEED_ADMIN_PASSWORD)' : `  Password: ${PASSWORD}  (shown once - change it after signing in)`)
 }
 
 seed().catch((err) => {

@@ -27,7 +27,7 @@ import { useCallback, useRef, useState } from 'react';
  *
  * ## Toasts are not banned - they are for a different thing
  *
- * A toast is right for the OUTCOME of a submit ("Student added", "Could not save - try again"). It
+ * A toast is right for the OUTCOME of a submit ("Customer added", "Could not save - try again"). It
  * is wrong for the STATE of a field, which has a place on screen to live.
  *
  * ## Usage

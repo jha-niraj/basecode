@@ -5,7 +5,7 @@ import * as React from "react"
 /**
  * A short most-recent-first list of things a person picked, kept in this browser's localStorage.
  *
- * Built for the Cmd+K palette's "Recent" section (plan/repo/ui/reui-components-2026-10-23.md 2.4).
+ * Built for the Cmd+K palette's "Recent" section.
  * Per-viewer convenience only: it can come back empty (private window, cleared site data, blocked
  * storage), so every read and write is wrapped and a failure simply means "no recents".
  *

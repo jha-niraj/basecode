@@ -27,8 +27,8 @@ import { cn } from "../../lib/utils"
  *
  * The caller passes raw HTML and this is `dangerouslySetInnerHTML`, so `sanitize` strips scripts,
  * `javascript:` URLs and inline event handlers before anything is set. Platform newsletters are
- * authored by Gurukul staff, but "written by staff" is not a security model - a compromised admin
- * account would otherwise script every school's browser.
+ * authored by platform staff, but "written by staff" is not a security model - a compromised admin
+ * account would otherwise script every tenant's browser.
  */
 
 /** Strips scripts, `javascript:` hrefs and inline handlers. Mirrors `apps/main/lib/sanitize.ts`. */

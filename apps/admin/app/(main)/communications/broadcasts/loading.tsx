@@ -1,5 +1,5 @@
-import { PageLoader } from "@repo/ui/components/ui/loader"
+import { BroadcastsSkeleton } from "./_components/broadcasts-skeleton"
 
 export default function Loading() {
-    return <PageLoader />
+    return <BroadcastsSkeleton />
 }

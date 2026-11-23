@@ -30,14 +30,3 @@ export function SectionLoader({ label = "Loading" }: { label?: string }) {
         </div>
     );
 }
-
-/** kept for basecode apps - inline loader sized in px, drawn with the house Spinner (dotSize is accepted and unused). */
-export function InlineLoader({ size = 32, className, label = "Loading" }: LoaderProps) {
-    return (
-        <Spinner
-            className={className ?? "text-neutral-500 dark:text-neutral-400"}
-            style={{ width: size, height: size }}
-            aria-label={label}
-        />
-    );
-}

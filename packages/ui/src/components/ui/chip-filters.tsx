@@ -18,8 +18,8 @@ import { updateFilterRule } from '../reui/filters/filters-query';
 import type { FilterFocusStore } from '../reui/filters/filters-context';
 
 /**
- * Stepped filter chips ("Class is 8", "Status is Unpaid") in place of a row of separate selects
- * (plan/repo/ui/reui-components-2026-10-23.md task 3.4). A thin wrapper over the ReUI `Filters` chip row for the
+ * Stepped filter chips ("Class is 8", "Status is Unpaid") in place of a row of separate selects.
+ * A thin wrapper over the ReUI `Filters` chip row for the
  * common case on our lists: every field takes ONE value, chosen from a list, and the server action takes it as one
  * string. So the bar reads and writes a plain `Record<key, value>`, exactly what the selects held, and the caller's
  * state, query keys and server input do not change.

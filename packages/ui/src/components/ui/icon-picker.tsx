@@ -9,7 +9,7 @@ import { cn } from "../../lib/utils"
  *
  * ## Why the map is INJECTED
  *
- * This package must not know which icons any particular feature offers. School Pulse has its own
+ * This package must not know which icons any particular feature offers. One feature has its own
  * `ICON_MAP` / `ICON_CHOICES` in the app, the next feature that needs a picker will have a
  * different set, and importing either one here would drag an app module into the design system.
  * So the caller passes `choices` (the names, in the order they should appear) and `resolve` (name

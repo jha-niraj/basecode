@@ -11,14 +11,14 @@ import { cn } from '../../lib/utils'
  *
  * Every sound here is generated with Web Audio at the moment it plays. There are no `.mp3` files,
  * no fetch, nothing to license and nothing to bundle - and it works with no network at all, which
- * matters for a product whose own marketing is about schools on a weak connection.
+ * matters for people on a weak connection.
  *
  * It is also the only version that stays tunable: a sound built from three numbers can be adjusted
  * by changing a number, where a sampled one has to be re-recorded by somebody else.
  *
  * ## Only success and error make a sound
  *
- * Those are the two a teacher needs to hear WITHOUT looking - did the fee save, did the register
+ * Those are the two a person needs to hear WITHOUT looking - did the payment save, did the form
  * fail. Info, warning and message are 39 calls out of nearly 2,000 and are rarely urgent. A sound
  * that fires constantly stops carrying information, and the one you actually need to hear is the
  * failure.

@@ -1,7 +1,6 @@
 import { getAdDateFromBs, getBsPartsFromAd } from './calendar-system';
 
-// A staff member's date of birth, typed or spoken as BS or AD (plan/main/staff/voice-onboarding-and-profile.md,
-// date of birth follow-up). Stored as an AD calendar date string ('YYYY-MM-DD') so it never shifts with time zones.
+// A staff member's date of birth, typed or spoken as BS or AD. Stored as an AD calendar date string ('YYYY-MM-DD') so it never shifts with time zones.
 
 const NEPALI_DIGITS = '०१२३४५६७८९';
 
@@ -44,7 +43,7 @@ export function parseBirthDate(raw: string, now: Date = new Date()): string | nu
 	return ad;
 }
 
-/** The stored AD birth date in the school's own calendar, as 'YYYY-MM-DD' - for prefilling an edit box. */
+/** The stored AD birth date in the tenant's own calendar, as 'YYYY-MM-DD' - for prefilling an edit box. */
 export function birthDateForEdit(adDate: string | null | undefined, calendarSystem: 'AD' | 'BS'): string {
 	if (!adDate) return '';
 	if (calendarSystem === 'AD') return adDate;

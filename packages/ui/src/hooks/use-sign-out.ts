@@ -7,7 +7,7 @@ import { usePathname, useRouter } from "next/navigation"
 import { PrefetchKind } from "next/dist/client/components/router-reducer/router-reducer-types"
 import { markNavPending } from "../components/app-link"
 
-/** Each app's `worker.ts` answers this before Next (and `app/api/sign-out/route.ts` in `next dev`). */
+/** Each app's `worker.ts` answers this before Next (and, under `next dev`, the rewrite to `app/api/auth/app-sign-out/route.ts`). */
 const SIGN_OUT_PATH = "/api/sign-out"
 
 export interface UseSignOutOptions {
@@ -49,8 +49,8 @@ async function runQuietly(fn: (() => void | Promise<void>) | undefined, what: st
 }
 
 /**
- * THE sign-out (fast-sign-in.md section 4; plan/repo/speed/round-3-map.md 1.2), used by every sign-out
- * control in main, admin and shishya-main.
+ * THE sign-out (fast-sign-in playbook section 4), used by every sign-out
+ * control in main and admin.
  *
  * 1. The sign-in page is prefetched (AUTO) on mount and again on hover, focus and touch - the
  *    middleware lets that background fetch through while still signed in (`Sec-Fetch-Dest`).

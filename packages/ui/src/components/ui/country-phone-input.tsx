@@ -14,7 +14,7 @@ import { PHONE_COUNTRY_CODES, PhoneInput, useSchoolPhoneCountry } from "./phone-
 // unchanged - there is one list, in one place.
 export { COUNTRIES, type Country } from "@repo/core/geo";
 
-// The country list and the school-country provider now live with PhoneInput; re-exported so existing imports keep working.
+// The country list and the tenant-country provider now live with PhoneInput; re-exported so existing imports keep working.
 export { PHONE_COUNTRY_CODES, SchoolCountryProvider } from "./phone-input";
 
 export function getDefaultCountry(): Country {
@@ -124,7 +124,7 @@ interface CountryPhoneInputProps {
     selectorClassName?: string;
     defaultCountryCode?: string;    // ISO-2; defaults to the SchoolCountryProvider's country, else "NP"
     countries?: string[];           // ISO-2 codes offered; defaults to PHONE_COUNTRY_CODES
-    lockedCountryCode?: string;     // ISO-2; when set, the dial code is fixed (school country)
+    lockedCountryCode?: string;     // ISO-2; when set, the dial code is fixed (tenant country)
 }
 
 export function CountryPhoneInput({

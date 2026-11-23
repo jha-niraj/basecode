@@ -91,7 +91,7 @@ export function findCountry(code: string | null | undefined): Country | null {
  * Display name for a country code, for use in copy.
  *
  * Falls back to the code itself rather than to "Nepal": a wrong-but-plausible country name in an
- * email to a school in Doha is worse than a terse one, because the reader cannot tell it is a
+ * email to a customer in Doha is worse than a terse one, because the reader cannot tell it is a
  * bug. Pass `fallback` where a generic phrase reads better than a code.
  */
 export function countryName(code: string | null | undefined, fallback?: string): string {
@@ -106,11 +106,11 @@ export function countryFlag(code: string | null | undefined): string {
 // ─── Currency ────────────────────────────────────────────────────────────────
 
 /**
- * ISO-4217 currency per country, for the markets Gurukul serves or plausibly will.
+ * ISO-4217 currency per country, for the markets served or plausibly will be.
  *
  * Deliberately NOT exhaustive across all 46 countries above: a currency we have not verified is
- * worse than none, because a wrong currency code on a school's own fee figures is a number the
- * principal will act on. Add a row when a market is actually opened.
+ * worse than none, because a wrong currency code on a customer's own figures is a number the
+ * owner will act on. Add a row when a market is actually opened.
  */
 export const CURRENCY_BY_COUNTRY: Record<string, string> = {
     NP: 'NPR',
@@ -143,7 +143,7 @@ export function currencyForCountry(code: string | null | undefined): string | nu
  * Render an amount for display in email/PDF copy.
  *
  * With a known currency: "NPR 12,500". Without one: "12,500" - a bare, unambiguous number.
- * It never guesses, because labelling a Qatari school's fees "NPR" is a specific, confident lie
+ * It never guesses, because labelling a Qatari customer's prices "NPR" is a specific, confident lie
  * about their money, and an unlabelled figure at least cannot mislead.
  */
 export function formatMoney(amount: number, currency: string | null | undefined): string {

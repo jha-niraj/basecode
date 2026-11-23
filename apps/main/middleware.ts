@@ -1,53 +1,44 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse, type NextRequest } from 'next/server'
+import { isSignedIn, matchesRoute, sessionCookieNames, signInRedirectUrl, signedInRedirectUrl } from '@repo/auth/middleware'
 
-// Routes that require a session — redirect to /signin if not logged in
-const protectedRoutes = [
-    '/home',
-    '/profile',
-]
+/**
+ * Cookie-only (packages/auth/src/middleware.ts): never the database. Stays `middleware.ts` - OpenNext rejects Next 16's
+ * Node `proxy.ts`. Everything is protected except the public routes below and `/api/*` (each route checks its own).
+ */
+const SIGN_IN = '/signin'
+const HOME = '/ai'
 
-// Auth-only routes — redirect to /home if ALREADY logged in
-// NOTE: /verifyemail is intentionally excluded — a signed-in user who just
-// registered must be able to reach this page before their email is verified.
-const authOnlyRoutes = [
-    '/signin',
-    '/signup',
-    '/forgotpassword',
-    '/resetpassword',
-]
+/** Signed-in visitors are sent on to HOME (or their returnTo). */
+const AUTH_ONLY = ['/signin', '/signup', '/forgotpassword', '/resetpassword']
+/** Open to everyone, signed in or not. `/verifyemail` stays reachable while signed in (the link lands there). */
+const PUBLIC = ['/', '/verifyemail', '/terms', '/privacy', '/opengraph-image']
 
-export async function middleware(request: NextRequest) {
-    const { pathname } = request.nextUrl
+export function middleware(request: NextRequest) {
+    const { pathname, searchParams } = request.nextUrl
+    const signedIn = isSignedIn(request)
 
-    if (
-        pathname.startsWith('/api/') ||
-        pathname.startsWith('/_next/') ||
-        pathname.includes('.')
-    ) {
-        return NextResponse.next()
+    if (matchesRoute(pathname, AUTH_ONLY)) {
+        if (!signedIn) return NextResponse.next()
+        // `?stale=1`: the page found the cookie dead (expired, revoked elsewhere). Expire it here, or the redirect to
+        // HOME below would loop with the page's redirect back to sign-in.
+        if (searchParams.has('stale')) return expireSessionCookies(NextResponse.next())
+        return NextResponse.redirect(signedInRedirectUrl(request, HOME))
     }
 
-    const isProtected = protectedRoutes.some(r => pathname === r || pathname.startsWith(r + '/'))
-    const isAuthOnly = authOnlyRoutes.some(r => pathname === r || pathname.startsWith(r + '/'))
+    if (matchesRoute(pathname, PUBLIC)) return NextResponse.next()
 
-    const sessionCookie = request.cookies.get('better-auth.session_token')
-    const isLoggedIn = !!sessionCookie?.value
-
-    // Not logged in trying to access a protected page
-    if (!isLoggedIn && isProtected) {
-        const url = new URL('/signin', request.nextUrl.origin)
-        url.searchParams.set('callbackUrl', pathname)
-        return NextResponse.redirect(url)
-    }
-
-    // Already logged in trying to access sign-in/sign-up pages
-    if (isLoggedIn && isAuthOnly) {
-        return NextResponse.redirect(new URL('/home', request.nextUrl.origin))
-    }
-
+    if (!signedIn) return NextResponse.redirect(signInRedirectUrl(request, SIGN_IN))
     return NextResponse.next()
 }
 
+function expireSessionCookies(res: NextResponse): NextResponse {
+    const [plain, secure] = sessionCookieNames()
+    res.cookies.set(plain, '', { path: '/', maxAge: 0 })
+    res.cookies.set(secure, '', { path: '/', maxAge: 0, secure: true })
+    return res
+}
+
 export const config = {
-    matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
+    // Not /api (every route checks its own session), not Next's assets, not files with an extension.
+    matcher: ['/((?!api/|_next/static|_next/image|.*\\.[a-zA-Z0-9]+$).*)'],
 }

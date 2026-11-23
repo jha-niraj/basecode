@@ -5,7 +5,7 @@ import { defaultMessage } from './messages';
  * THE ONE RESPONSE TYPE.
  *
  * Every server action, route handler, and API in every app returns this and
- * nothing else. It replaces admin's `AdminResponse<T>` and main/student's
+ * nothing else. It replaces admin's `AdminResponse<T>` and main's
  * ad-hoc `{ success, error }`.
  *
  *   - on success: `data` carries the payload.

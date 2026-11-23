@@ -5,7 +5,7 @@ import {
 } from "../../lib/chart-theme";
 
 /**
- * Grain on every chart (Niraj, 2026-10-19: "use the same gradient for these charts").
+ * Grain on every chart (the owner, 2026-10-19: "use the same gradient for these charts").
  *
  * The GrainCover recipe carried onto chart marks: each bar, area and pie slice is
  * filled with a vertical gradient - a light creamy tint at the top, the validated

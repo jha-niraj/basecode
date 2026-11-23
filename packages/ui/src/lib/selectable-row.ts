@@ -2,7 +2,7 @@ import type { KeyboardEvent, MouseEvent } from 'react';
 
 /**
  * Selectable rows - a click anywhere on a row (a table row or list item carrying a selection
- * checkbox) toggles it, not only a click on the checkbox. Niraj, 2026-10-21: "put this on the
+ * checkbox) toggles it, not only a click on the checkbox. The owner, 2026-10-21: "put this on the
  * whole row itself. Whenever and wherever I click, it should be clicked".
  *
  * Usage:
@@ -108,7 +108,7 @@ export function selectableRowProps({ selected, onToggle, disabled = false, seman
 }
 
 /**
- * Openable rows - the whole row opens the thing its Details / View button opens (Niraj, 2026-10-23: "make this
+ * Openable rows - the whole row opens the thing its Details / View button opens (the owner, 2026-10-23: "make this
  * whole row clickable and keep the details button as well"). Same guard as a selectable row: a click on an inner
  * link, button, input or anything `data-row-ignore` keeps its own behaviour, and portalled content is ignored.
  *

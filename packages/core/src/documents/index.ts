@@ -53,8 +53,8 @@ export function downloadBlob(blob: Blob, filename: string): void {
  *
  * **Prepends a UTF-8 BOM, and this is the whole reason the function exists.** Excel on Windows does
  * not sniff encoding: without the BOM it decodes the file as the system codepage, and every
- * Devanagari character in it becomes garbage. On a platform whose users are Nepali schools, that is
- * most of a typical student export. Every hand-rolled copy omitted it.
+ * Devanagari character in it becomes garbage. For users who write in Nepali, that is
+ * most of a typical export. Every hand-rolled copy omitted it.
  *
  * The BOM is added HERE rather than inside `toCsv` so that it lands exactly once, whether the string
  * was built in this browser or arrived from a server action.
@@ -71,10 +71,10 @@ export function downloadCsv(csv: string, filename: string): void {
  * `openPrintWindow` used to live here, and it is gone deliberately.
  *
  * It built an HTML string in the browser and handed it to `window.open`, which meant the artefact a
- * school actually received depended on the popup blocker, the browser's own table pagination and the
- * user's print margins. Every one of its call sites - the fee receipt, the payslip, the tabulation
+ * customer actually received depended on the popup blocker, the browser's own table pagination and the
+ * user's print margins. Every one of its call sites - the receipt, the payslip, the summary
  * sheet - was a document somebody files, and all of them now go through `@repo/pdf` rendered in
- * `gurukul-services`, so the bytes are the same on every machine.
+ * a services Worker, so the bytes are the same on every machine.
  *
  * Do not bring it back. If a new surface needs a printable artefact, add a renderer to `@repo/pdf`
  * and a route that calls `renderPdfViaServices`; see `docs/print-to-pdf-migration.md` for the

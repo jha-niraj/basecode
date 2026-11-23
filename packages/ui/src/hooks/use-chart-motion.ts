@@ -3,7 +3,7 @@
 import { useEffect, useState, useSyncExternalStore } from 'react'
 
 /**
- * The house chart load animation (Niraj, 2026-10-20: "check if we have animation on this charts ... when page loads
+ * The house chart load animation (the owner, 2026-10-20: "check if we have animation on this charts ... when page loads
  * then this looks more awesome"). Every chart used to pass `isAnimationActive={false}`, so nothing moved.
  *
  * Spread `motion` onto each recharts mark (`<Area {...motion}>`, `<Bar {...motion}>`, `<Line {...motion}>`):

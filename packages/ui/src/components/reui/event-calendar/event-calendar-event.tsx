@@ -44,7 +44,7 @@ import {
 import { RepeatIcon } from "lucide-react"
 
 /** Event color presets; each stays legible on light and dark surfaces.
- *  Gurukul palette only (AGENTS.md "Colour"): an event's colour is its datum. */
+ *  House palette only (AGENTS.md "Colour"): an event's colour is its datum. */
 const EVENT_CALENDAR_COLORS: Array<{ name: string; value: string }> = [
   { name: "Amber", value: "var(--color-amber-500)" },
   { name: "Rose", value: "var(--color-rose-500)" },

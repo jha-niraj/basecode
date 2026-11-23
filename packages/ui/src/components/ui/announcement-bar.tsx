@@ -25,7 +25,7 @@ import { cn } from '../../lib/utils'
  *
  * So an inline script runs during parse and removes the node before first paint. An effect cannot
  * do this - effects run after paint, so every load would flash the bar at someone who has already
- * said no. Same mechanism, and the same reasoning, as the playful theme pin in the student app.
+ * said no. Same mechanism, and the same reasoning, as a theme pin read before paint.
  *
  * **The storage key carries a slug of the MESSAGE.** Changing the copy brings the bar back for
  * everyone who dismissed the old one. A dismissal that silently swallows the next announcement is
@@ -50,7 +50,7 @@ export type Announcement = {
     until?: string
 }
 
-/** `Gurukul is live for 2083` -> `gurukul-is-live-for-2083`, trimmed. The storage key's identity. */
+/** `We are live for 2027` -> `we-are-live-for-2027`, trimmed. The storage key's identity. */
 function slug(message: string): string {
     return message.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60)
 }

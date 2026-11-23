@@ -30,7 +30,7 @@ function isCurrentPage(href: string): boolean {
 }
 
 /**
- * The sidebar's prefetch queue (navigation-speed playbook section 5.2; plan/repo/speed/round-3-map.md 2.1).
+ * The sidebar's prefetch queue (navigation-speed playbook section 5.2).
  *
  * WHY NOT ON SIGHT: Next fired every visible rail row's prefetch in the same instant, and on Workers
  * simultaneous requests spread across isolates - most landed on fresh ones at 2.3 to 5.5s, and a click

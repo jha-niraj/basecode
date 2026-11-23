@@ -1,0 +1,31 @@
+{
+	"name": "@repo/billing",
+	"version": "0.0.0",
+	"private": true,
+	"description": "AI usage meter, plans (Free / Pro), payments and the credit ledger; renewal reminders",
+	"type": "module",
+	"main": "./src/index.ts",
+	"types": "./src/index.ts",
+	"exports": {
+		".": "./src/index.ts",
+		"./plans": "./src/plans.ts"
+	},
+	"scripts": {
+		"check-types": "tsc --noEmit"
+	},
+	"dependencies": {
+		"@repo/ai": "workspace:*",
+		"@repo/core": "workspace:*",
+		"@repo/cron": "workspace:*",
+		"@repo/db": "workspace:*",
+		"@repo/email": "workspace:*",
+		"@repo/errors": "workspace:*",
+		"@repo/payments": "workspace:*",
+		"drizzle-orm": "^0.45.4"
+	},
+	"devDependencies": {
+		"@repo/typescript-config": "workspace:*",
+		"@types/node": "^22.15.3",
+		"typescript": "5.9.3"
+	}
+}

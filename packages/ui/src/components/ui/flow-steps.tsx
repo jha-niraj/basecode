@@ -17,8 +17,8 @@ import {
 export type FlowStep = string | { label: string; description?: string }
 
 /**
- * The house step indicator for a multi-step flow, on the ReUI Stepper (plan/repo/ui/reui-components-2026-10-23.md
- * 3.1). It only DRAWS where the flow is - the flow keeps its own step state, validation and Back/Next buttons.
+ * The house step indicator for a multi-step flow, on the ReUI Stepper.
+ * It only DRAWS where the flow is - the flow keeps its own step state, validation and Back/Next buttons.
  *
  * Neutral throughout: done steps carry a check on a neutral chip, the current step is ink with an amber ring, the
  * rest are outlined. No green fill. `current` is 0-based. Pass `onStepClick` to let earlier steps be pressed (only

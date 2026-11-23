@@ -1,26 +1,28 @@
 {
-    "name": "@repo/core",
-    "version": "0.0.0",
-    "private": true,
-    "type": "module",
-    "exports": {
-        "./typed-fields": "./src/typed-fields/index.ts",
-        "./geo": "./src/geo/index.ts",
-        "./csv": "./src/csv/index.ts",
-        "./documents": "./src/documents/index.ts",
-        "./list/move-item": "./src/list/move-item.ts"
-    },
-    "scripts": {
-        "lint": "eslint . --max-warnings 0",
-        "check-types": "tsc --noEmit"
-    },
-    "dependencies": {
-        "zod": "^4"
-    },
-    "devDependencies": {
-        "@repo/typescript-config": "workspace:*",
-        "@types/node": "^22.15.3",
-        "typescript": "5.9.2",
-        "@repo/eslint-config": "workspace:*"
-    }
+	"name": "@repo/core",
+	"version": "0.0.0",
+	"private": true,
+	"description": "Framework-free helpers: site config (SITE), typed fields, csv, lists, documents",
+	"type": "module",
+	"exports": {
+		"./typed-fields": "./src/typed-fields/index.ts",
+		"./geo": "./src/geo/index.ts",
+		"./csv": "./src/csv/index.ts",
+		"./documents": "./src/documents/index.ts",
+		"./list/move-item": "./src/list/move-item.ts",
+		"./site": "./src/site.ts"
+	},
+	"scripts": {
+		"lint": "eslint . --max-warnings 0",
+		"check-types": "tsc --noEmit"
+	},
+	"dependencies": {
+		"zod": "^4"
+	},
+	"devDependencies": {
+		"@repo/typescript-config": "workspace:*",
+		"@types/node": "^22.15.3",
+		"typescript": "5.9.3",
+		"@repo/eslint-config": "workspace:*"
+	}
 }

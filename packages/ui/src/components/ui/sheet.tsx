@@ -8,9 +8,11 @@ import { X } from "lucide-react"
 import { cn } from "../../lib/utils"
 
 /**
- * Sheets are NON-MODAL by default, like Notion's side peek (Niraj, 2026-10-22 - an experiment): no dimmed backdrop and
- * the page behind stays live. Clicking the app's sidebar (`data-sheet-keep-open`) leaves the sheet open; a click anywhere
- * else on the page closes it (a document listener in SheetContent), as do the X and Esc. Pass `modal` for a sheet that must block the page (dimmed backdrop).
+ * Sheets are NON-MODAL by default, like Notion's side peek (the owner, 2026-10-22 - an experiment): no dimmed backdrop and
+ * the page behind stays live. A press anywhere outside the sheet closes it (a document listener in SheetContent), the
+ * app's rail included - a rail link navigates and the sheet closes with it. The only presses that keep it open are on
+ * `data-sheet-keep-open` elements: list rows that open or swap the sheet, and its trigger. The X and Esc close it too
+ * (Esc one layer at a time). Pass `modal` for a sheet that must block the page (dimmed backdrop).
  */
 const SheetModalContext = React.createContext(false)
 
@@ -93,9 +95,9 @@ const sheetVariants = cva(
 				// new page rather than a layer over the current one, and there is no visible
 				// hint that anything is behind it. The sliver of dimmed page is the entire
 				// affordance. It drops away from `sm`, where the sheet is plainly a panel.
-				left: "inset-y-0 left-0 h-full w-3/4 max-w-[90%] border-r data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left sm:max-w-sm",
+				left: "inset-y-0 left-0 h-full w-3/4 max-w-[90%] border-r data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left sm:max-w-[35rem]",
 				right:
-					"inset-y-0 right-0 h-full w-3/4 max-w-[90%] border-l data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right sm:max-w-sm",
+					"inset-y-0 right-0 h-full w-3/4 max-w-[90%] border-l data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right sm:max-w-[35rem]",
 			},
 		},
 		defaultVariants: {
@@ -110,18 +112,23 @@ interface SheetContentProps
 	/**
 	 * A sheet that must not close on a stray click outside (a long form). The click is ignored, and the
 	 * element inside marked `data-sheet-cancel` flashes (`.gk-sheet-flash`, ring + a small shake; ring only
-	 * under reduced motion) so the person sees where closing lives. Niraj, 2026-10-20.
+	 * under reduced motion) so the person sees where closing lives. The owner, 2026-10-20.
 	 */
 	guardOutside?: boolean
 	/**
 	 * A left or right sheet can be dragged wider or narrower by its inner edge (from `sm`), starting at its own default
 	 * width; a double click on the edge puts it back. On by default; pass `false` for a sheet that must keep its size.
-	 * Niraj, 2026-10-22 (an experiment - the width is not remembered between openings).
+	 * The owner, 2026-10-22 (an experiment - the width is not remembered between openings).
 	 */
 	resizable?: boolean
 }
 
 const SHEET_MIN_W = 320
+
+// An open menu, select or popover. A tooltip is a popper too but is not a layer: it must neither swallow the press that
+// should close the sheet nor be waited on by Esc (hovering a header action left its tooltip up).
+const OPEN_POPOVER_LAYER = '[data-radix-popper-content-wrapper]:not(:has([role="tooltip"])),[role="menu"][data-state="open"],[role="listbox"][data-state="open"]'
+const OPEN_DIALOG = '[role="dialog"][data-state="open"],[role="alertdialog"][data-state="open"]'
 
 
 /** The drag edge of a resizable side sheet, and the width it set (null = the sheet's own default). */
@@ -133,7 +140,15 @@ function useSheetResize(side: "top" | "bottom" | "left" | "right", enabled: bool
 		e.preventDefault()
 		const startX = e.clientX
 		const startW = el.getBoundingClientRect().width
-		const max = () => Math.round(window.innerWidth * 0.95)
+		// Never wider than the space beside a `data-sheet-boundary` (the desktop rail), so the sheet cannot cover it.
+		const max = () => {
+			const edges = side !== "right" ? [] : Array.from(document.querySelectorAll("[data-sheet-boundary]")).map((b) => {
+				const r = b.getBoundingClientRect()
+				return r.width > 0 ? r.right : 0
+			})
+			const free = window.innerWidth - Math.max(0, ...edges)
+			return Math.max(SHEET_MIN_W, Math.min(Math.round(window.innerWidth * 0.95), Math.round(free)))
+		}
 		const move = (ev: PointerEvent) => {
 			const dx = side === "right" ? startX - ev.clientX : ev.clientX - startX
 			setWidth(Math.min(max(), Math.max(SHEET_MIN_W, Math.round(startW + dx))))
@@ -174,7 +189,7 @@ const SheetContent = React.forwardRef<
 		window.setTimeout(() => el.classList.remove("gk-sheet-flash"), 800)
 	}, [])
 	// Non-modal: a click anywhere on the page outside the sheet closes it - read straight off the document, so it
-	// does not hang on how the dialog layer counts "outside" (Niraj, 2026-10-22: it did not close on Invite). Not for
+	// does not hang on how the dialog layer counts "outside" (the owner, 2026-10-22: it did not close on Invite). Not for
 	// the sidebar (`data-sheet-keep-open`), a popover / menu / other dialog opened from the sheet, or a toast; a sheet
 	// that guards its contents flashes its Cancel instead.
 	//
@@ -194,11 +209,17 @@ const SheetContent = React.forwardRef<
 			const target = ev.target
 			if (ev.button !== 0 || !el || !el.isConnected || !(target instanceof Element) || el.contains(target)) return
 			if (el.dataset.state !== "open") return
-			if (target.closest('[data-sheet-keep-open],[data-radix-popper-content-wrapper],[role="dialog"],[role="alertdialog"],[role="menu"],[role="listbox"],[data-sonner-toaster]')) return
+			// A press inside another sheet: only the top-most open sheet closes; a sheet underneath never closes from a
+			// press on the one above it.
+			const otherSheet = target.closest("[data-app-sheet]")
+			if (otherSheet) {
+				const open = Array.from(document.querySelectorAll('[data-app-sheet][data-state="open"]'))
+				if (open[open.length - 1] !== el) return
+			} else if (target.closest('[data-sheet-keep-open],[data-radix-popper-content-wrapper],[role="dialog"],[role="alertdialog"],[role="menu"],[role="listbox"],[data-toast-region]')) return
 			if (el.id && target.closest(`[aria-controls="${CSS.escape(el.id)}"]`)) return
 			// A menu, select or popover is open (opened from the sheet or anywhere): this press only dismisses it, the
-			// way every app behaves - the sheet stays (Niraj, 2026-10-22: the "..." menu's outside click closed both).
-			if (document.querySelector('[data-radix-popper-content-wrapper],[role="menu"][data-state="open"],[role="listbox"][data-state="open"]')) return
+			// way every app behaves - the sheet stays (the owner, 2026-10-22: the "..." menu's outside click closed both).
+			if (document.querySelector(OPEN_POPOVER_LAYER)) return
 			if (guardOutside) { flashCancel(); return }
 			closedFromOutside.current = true
 			closeRef.current?.click()
@@ -206,11 +227,30 @@ const SheetContent = React.forwardRef<
 		document.addEventListener("pointerdown", onDown, true)
 		return () => document.removeEventListener("pointerdown", onDown, true)
 	}, [modal, guardOutside, flashCancel])
+	// Esc closes the top-most layer, every time. Radix hands Esc to the highest layer in its own stack, and that stack
+	// can hold a layer that already closed (a dialog opened from the sheet), so the second Esc went nowhere. Read the
+	// DOM instead: when no menu / popover is open and this sheet is the last open dialog, close it, ahead of Radix.
+	React.useEffect(() => {
+		if (modal) return
+		const onKey = (ev: KeyboardEvent) => {
+			if (ev.key !== "Escape" || ev.defaultPrevented || ev.isComposing) return
+			const el = innerRef.current
+			if (!el || !el.isConnected || el.dataset.state !== "open") return
+			if (document.querySelector(OPEN_POPOVER_LAYER)) return
+			const open = document.querySelectorAll(OPEN_DIALOG)
+			if (open[open.length - 1] !== el) return
+			ev.stopPropagation()
+			closeRef.current?.click()
+		}
+		window.addEventListener("keydown", onKey, true)
+		return () => window.removeEventListener("keydown", onKey, true)
+	}, [modal])
 	return (
 	<SheetPortal>
 		{modal && <SheetOverlay />}
 		<SheetPrimitive.Content
 			ref={setRefs}
+			data-app-sheet=""
 			className={cn(sheetVariants({ side }),
 				className)}
 			// A dragged width beats the sheet's own `sm:max-w-*` (inline style), and lifts the cap so it can grow.
@@ -253,7 +293,7 @@ const SheetContent = React.forwardRef<
 					<span aria-hidden className="absolute inset-y-0 left-1/2 w-px -translate-x-1/2 bg-transparent transition-colors group-hover:bg-neutral-400 dark:group-hover:bg-neutral-500" />
 				</div>
 			)}
-			<SheetPrimitive.Close ref={closeRef} className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary">
+			<SheetPrimitive.Close ref={closeRef} data-slot="sheet-close" className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary">
 				<X className="h-4 w-4" />
 				<span className="sr-only">Close</span>
 			</SheetPrimitive.Close>
@@ -264,7 +304,7 @@ const SheetContent = React.forwardRef<
 SheetContent.displayName = SheetPrimitive.Content.displayName
 
 /**
- * The sheet's header is a BAND (Niraj, 2026-10-23, the Staff credits person sheet as the reference): full width,
+ * The sheet's header is a BAND (the owner, 2026-10-23, the Staff credits person sheet as the reference): full width,
  * a hairline under it, the title with its line right below, room on the right for the close button - not a padded
  * stack with a large gap. One default for every sheet, so the ~130 that render a plain `<SheetHeader>` change here.
  *
@@ -292,12 +332,22 @@ const SheetHeader = ({
 }
 SheetHeader.displayName = "SheetHeader"
 
+/**
+ * The footer is a BAND too, the header's mirror (the owner, 2026-10-28: "this line is not touching the boundary ... the
+ * footer has too much padding"): in the standard sheet (`p-6`) it bleeds to the edges and the bottom (`-mx-6 -mb-6`),
+ * a hairline above, `py-3` - so the line between body and footer runs edge to edge like the header's, and the footer
+ * is 12px of padding round its buttons instead of 16px above and the sheet's 24px below. A footer that sets its own
+ * padding or margins keeps its layout (same test as the header).
+ */
 const SheetFooter = ({
 	className,
 	...props
 }: React.HTMLAttributes<HTMLDivElement>) => (
 	<div
+		data-slot="sheet-footer"
 		className={cn(
+			"shrink-0",
+			!(className && SELF_LAID_OUT.test(className)) && "-mx-6 -mb-6 mt-auto border-t border-neutral-200 px-6 py-3 dark:border-neutral-800",
 			// `gap-2`, not `sm:space-x-2`: the footer stacks with `flex-col-reverse` below `sm`,
 			// and `space-x` only ever spaced the ROW direction - so on every phone two footer
 			// buttons rendered edge to edge with a 0px gap between them. Measured at 360x640:

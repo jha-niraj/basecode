@@ -16,8 +16,7 @@ import {
 } from './trace'
 
 /**
- * The agent's work on one turn, shown as it happens - built on the shadcn/ReUI Trace
- * (plan/repo/ui/reui-components-2026-10-23.md 2.1; history in plan/main/ai-saathi/chat-ui-and-reasoning-steps.md).
+ * The agent's work on one turn, shown as it happens - built on the shadcn/ReUI Trace.
  *
  * ## What it shows
  *
@@ -25,8 +24,8 @@ import {
  * opening onto:
  *  - a "Thought for 3s" row, when the model thought on this turn. Its content is the model's OWN
  *    thinking (Claude's summarised thinking, streamed as `reasoning-delta` frames) - collapsed by
- *    default, because it is provenance, not the answer. Simple lookups never think (the server
- *    decides, `shouldThink` in packages/ai), so most turns have no such row.
+ *    default, because it is provenance, not the answer. Every chat turn thinks adaptively at effort
+ *    low (runAgentStream), so a simple lookup usually thinks little or not at all and shows no row.
  *  - one line per tool call, with the app's own words for it, its duration, and "failed" in words on
  *    a failure (Trace's status is colour and motion only, which a colour-blind reader cannot see).
  *
@@ -48,7 +47,7 @@ export interface ReasoningStep {
     /**
      * The raw tool name (`getWhoIsAbsentToday`), shown as a small mono chip beside the label when the
      * list has room. Optional - only the staff chat passes it. Showing WHICH tool answered is the most
-     * direct proof that an answer came from the school's records (plan/main/saathi/chat-matches-the-demo.md, S1).
+     * direct proof that an answer came from the tenant's records.
      */
     name?: string
     status: ReasoningStepStatus

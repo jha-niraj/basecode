@@ -1,70 +1,60 @@
-# Basecodebase — Next.js Monorepo Starter
+# Basecode
 
-A batteries-included monorepo starter built with Turborepo. Comes pre-wired with **Drizzle ORM**, **Better Auth**, and a full **admin panel** — so you ship features instead of boilerplate.
+A starter monorepo you clone to begin a new product with the boring parts already right: sign-in (password, Google,
+email code), a full-page AI workspace with a right column and a cost-tuned Claude setup, Settings, Notes as the
+reference module, billing with five payment providers, an admin console, and the rules that keep it all consistent.
 
-## What's inside
+**Working on this with Claude Code (or any agent)? Start at [`docs/README.md`](docs/README.md)** - the map - and
+[`AGENTS.md`](AGENTS.md) - the rules. `CLAUDE.md` is one line that imports AGENTS.md.
 
-```
-apps/
-  main/   → customer-facing Next.js app  (port 3000)
-  admin/  → admin dashboard              (port 3001)
-packages/
-  auth/   → @repo/auth  — Better Auth (email/password + Google OAuth)
-  db/     → @repo/db    — Drizzle ORM + PostgreSQL schema
-  ui/     → @repo/ui    — Shared Shadcn/ui component library
-```
+## Stack
 
-## Tech stack
+Next 16 (webpack) + React 19 + Tailwind 4 on Cloudflare Workers (OpenNext), Neon Postgres over HTTP with Drizzle,
+better-auth, AI SDK 7 with Claude (Haiku 5.5 for everyday work), pnpm + Turborepo, TypeScript 5.9.
 
-- **Framework**: Next.js 15 (App Router, React 19)
-- **ORM**: Drizzle ORM + postgres.js
-- **Auth**: Better Auth
-- **UI**: Shadcn/ui + Tailwind CSS v4
-- **Monorepo**: Turborepo + pnpm workspaces
-- **Language**: TypeScript 5.9
+| App | What | Port |
+|---|---|---|
+| `apps/main` | The product. Signed-in people land on `/ai` | 3100 |
+| `apps/admin` | Admin console: team, access, users, billing, audit, system | 3101 |
 
-## Quick start
+Packages (`packages/*`, imported as `@repo/<name>`): `ui`, `core`, `errors`, `db`, `auth`, `crypto`, `email`, `storage`,
+`ai`, `billing`, `payments`, `sarvamai`, `pdf`, `cron`, `legal`, `erasure`, `webdata`, `calendar`, plus the eslint and
+typescript configs. What each owns: [`docs/architecture.md`](docs/architecture.md).
+
+## First run
 
 ```bash
-# 1. Copy env and fill in DATABASE_URL + BETTER_AUTH_SECRET
-cp .env.example .env
-
-# 2. Install dependencies
 pnpm install
 
-# 3. Push schema to the database
-pnpm --filter @repo/db db:push
+# 1. Env: every app has .env.local (your machine), .env (staging), .env.production (production).
+#    Put DATABASE_URL and ANTHROPIC_API_KEY into apps/main/.env.local and apps/admin/.env.local (same database).
+#    Blank keys turn features off; __LIKE_THIS__ must be filled before a deploy.
+pnpm env:check
 
-# 4. Run all apps
-pnpm dev
+# 2. Database: a FRESH Neon database only - after that, additive SQL scripts (AGENTS.md section 6)
+ALLOW_DB_PUSH=1 pnpm db:push
+pnpm db:seed                      # super admin; password from SEED_ADMIN_PASSWORD or printed once
+
+# 3. Run one app at a time
+pnpm --filter main dev            # http://localhost:3100
+pnpm --filter admin dev           # http://localhost:3101
 ```
 
-Visit `http://localhost:3000` for the main app and `http://localhost:3001` for the admin panel.
+Without `RESEND_API_KEY`, every email (verify link, sign-in code, reset link, invitation) is printed to the dev server
+console instead of sent, so every auth flow works locally.
 
-## Environment variables
+## Making it yours
 
-```bash
-DATABASE_URL=postgresql://...
-BETTER_AUTH_SECRET=<random 32+ char string>
+Rename the product, ports, Worker names and cookies with the checklist in
+[`docs/recipes.md`](docs/recipes.md#rename-the-product). The brand lives in one place: `packages/core/src/site.ts`.
 
-# Optional — Google OAuth
-GOOGLE_CLIENT_ID=
-GOOGLE_CLIENT_SECRET=
+## Deploying
 
-# App URLs (for trusted origins)
-MAIN_APP_URL=http://localhost:3000
-ADMIN_APP_URL=http://localhost:3001
-```
+`pnpm deploy:staging <main|admin|all>` and `pnpm deploy:prod <main|admin|all>` - they refuse to run until the
+Cloudflare account id, URLs and production database are set. What to set up first:
+[`docs/env-and-deploy.md`](docs/env-and-deploy.md).
 
-## Common tasks
+## Where things stand
 
-```bash
-pnpm dev                              # run all apps
-pnpm build                            # build all apps
-pnpm --filter @repo/db db:push        # sync schema to DB (dev)
-pnpm --filter @repo/db db:generate    # generate migration files (prod)
-pnpm --filter @repo/db db:migrate     # apply migrations (prod)
-pnpm --filter @repo/db db:studio      # open Drizzle Studio
-```
-
-For full documentation, see [CLAUDE.md](./CLAUDE.md).
+`plan/INDEX.md` lists every piece of work and its state. Workspaces (teams) are not built yet - the plan for them is
+[`docs/workspaces.md`](docs/workspaces.md).

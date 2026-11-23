@@ -1,5 +1,5 @@
-import { PageLoader } from "@repo/ui/components/ui/loader"
+import { AuditLogsSkeleton } from "./_components/audit-logs-skeleton"
 
 export default function Loading() {
-    return <PageLoader />
+    return <AuditLogsSkeleton />
 }

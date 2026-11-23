@@ -1,5 +1,5 @@
-import { PageLoader } from "@repo/ui/components/ui/loader"
+import { AnnouncementsSkeleton } from "./_components/announcements-skeleton"
 
 export default function Loading() {
-    return <PageLoader />
+    return <AnnouncementsSkeleton />
 }

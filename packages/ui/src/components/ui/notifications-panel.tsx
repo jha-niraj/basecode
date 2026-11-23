@@ -4,7 +4,8 @@ import * as React from "react"
 import { Bell, CheckCheck, ChevronDown } from "lucide-react"
 import { Spinner } from "./spinner"
 import { cn } from "../../lib/utils"
-import { Sheet, SheetContent } from "@repo/ui/components/ui/sheet"
+import { RelativeTime } from "./relative-time"
+import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@repo/ui/components/ui/sheet"
 import { ScrollArea } from "@repo/ui/components/ui/scroll-area"
 import { RowListSkeleton } from "@repo/ui/components/skeleton-kit"
 import { Button } from "@repo/ui/components/ui/button"
@@ -32,9 +33,9 @@ type SortKey = "recent" | "oldest"
 const ALL_MODULES = "__all__"
 
 // ── Tiny relative-time formatter (no date-fns dep in @repo/ui) ──────────────────
-function timeAgo(input: Date | string): string {
+function timeAgo(input: Date | string, now: Date = new Date()): string {
 	const d = typeof input === "string" ? new Date(input) : input
-	const s = Math.max(0, Math.floor((Date.now() - d.getTime()) / 1000))
+	const s = Math.max(0, Math.floor((now.getTime() - d.getTime()) / 1000))
 	if (s < 45) return "just now"
 	const m = Math.floor(s / 60)
 	if (m < 60) return `${m}m ago`
@@ -103,11 +104,11 @@ function EmptyState({ title, body }: { title: string; body: string }) {
 function NotificationRow({ n, onClick }: { n: NotificationView; onClick?: (n: NotificationView) => void }) {
 	const isUnread = !n.readAt
 	return (
-		<button
+		<Button variant="ghost"
 			type="button"
 			onClick={onClick ? () => onClick(n) : undefined}
 			className={cn(
-				"w-full rounded-xl border p-3.5 text-left text-sm transition-all hover:shadow-sm cursor-pointer",
+				"block h-auto w-full whitespace-normal rounded-xl border p-3.5 text-left text-sm font-normal transition-all hover:shadow-sm cursor-pointer",
 				isUnread
 					? "border-neutral-200 bg-neutral-50 dark:border-neutral-700/70 dark:bg-neutral-900"
 					: "border-neutral-100 hover:bg-neutral-50 dark:border-neutral-800 dark:hover:bg-neutral-900/60",
@@ -124,7 +125,7 @@ function NotificationRow({ n, onClick }: { n: NotificationView; onClick?: (n: No
 					</div>
 					<p className="mt-1 line-clamp-2 text-sm text-neutral-600 dark:text-neutral-300">{n.body}</p>
 					<div className="mt-1.5 flex items-center justify-between gap-2">
-						<span className="text-xs text-neutral-500 dark:text-neutral-400">{timeAgo(n.createdAt)}</span>
+						<span className="text-xs text-neutral-500 dark:text-neutral-400"><RelativeTime value={n.createdAt} format={timeAgo} /></span>
 						<span className="flex items-center gap-2">
 							<span className="rounded-full bg-neutral-100 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400">{n.module}</span>
 							{n.href ? <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400">View</span> : null}
@@ -132,7 +133,7 @@ function NotificationRow({ n, onClick }: { n: NotificationView; onClick?: (n: No
 					</div>
 				</div>
 			</div>
-		</button>
+		</Button>
 	)
 }
 
@@ -151,6 +152,7 @@ export function NotificationsPanel({
 	title = "Notifications",
 	subtitle = "Recent activity and alerts.",
 	emptyBody = "You'll see notifications here when there's activity.",
+	footer,
 }: {
 	open: boolean
 	onOpenChange: (open: boolean) => void
@@ -166,6 +168,8 @@ export function NotificationsPanel({
 	title?: string
 	subtitle?: string
 	emptyBody?: string
+	/** A band under the list, e.g. a "See all" link to the app's notifications page. */
+	footer?: React.ReactNode
 }) {
 	const [tab, setTab] = React.useState<"unread" | "read">("unread")
 	const [moduleFilter, setModuleFilter] = React.useState<string>(ALL_MODULES)
@@ -206,29 +210,31 @@ export function NotificationsPanel({
 				<div className="shrink-0 border-b border-neutral-200 px-5 py-4 dark:border-neutral-800">
 					<div className="flex items-start justify-between gap-3">
 						<div className="min-w-0">
-							<h2 className="text-base font-semibold text-neutral-900 dark:text-white">{title}</h2>
-							<p className="mt-0.5 text-sm text-neutral-500 dark:text-neutral-400">{subtitle}</p>
+							<SheetTitle className="text-base font-semibold text-neutral-900 dark:text-white">{title}</SheetTitle>
+							<SheetDescription className="mt-0.5 text-sm text-neutral-600 dark:text-neutral-400">{subtitle}</SheetDescription>
 						</div>
-						<button
+						<Button
 							type="button"
+							variant="ghost"
+							size="icon-sm"
 							onClick={() => onOpenChange(false)}
 							aria-label="Close"
-							className="shrink-0 rounded-lg p-1.5 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700 dark:hover:bg-neutral-800 dark:hover:text-neutral-200 cursor-pointer"
+							className="shrink-0 rounded-lg text-neutral-500 hover:text-neutral-900 dark:hover:text-white"
 						>
 							<ChevronDown className="h-4 w-4 rotate-[-90deg]" />
-						</button>
+						</Button>
 					</div>
 
 					{/* Tabs (left) + filters (right) */}
 					<div className="mt-4 flex flex-wrap items-center justify-between gap-3">
 						<div className="flex items-center gap-1 rounded-lg bg-neutral-100 p-0.5 dark:bg-neutral-800/70">
 							{(["unread", "read"] as const).map((t) => (
-								<button
+								<Button variant="ghost"
 									key={t}
 									type="button"
 									onClick={() => setTab(t)}
 									className={cn(
-										"flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors cursor-pointer",
+										"flex h-auto items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors cursor-pointer",
 										tab === t
 											? "bg-white text-neutral-900 shadow-sm dark:bg-neutral-950 dark:text-white"
 											: "text-neutral-500 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200",
@@ -240,7 +246,7 @@ export function NotificationsPanel({
 											{unreadCount > 99 ? "99+" : unreadCount}
 										</span>
 									)}
-								</button>
+								</Button>
 							))}
 						</div>
 
@@ -313,6 +319,9 @@ export function NotificationsPanel({
 						)}
 					</div>
 				</ScrollArea>
+				{footer && (
+					<div className="shrink-0 border-t border-neutral-200 px-5 py-3 dark:border-neutral-800">{footer}</div>
+				)}
 			</SheetContent>
 		</Sheet>
 	)

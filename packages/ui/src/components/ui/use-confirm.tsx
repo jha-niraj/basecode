@@ -58,7 +58,7 @@ export interface ConfirmOptions {
     /** `sm` = compact stacked layout for short confirms. */
     size?: AlertDialogSize;
     /**
-     * Type-to-confirm for the worst actions (delete a school, void every bill): the confirm button
+     * Type-to-confirm for the worst actions (delete a workspace, void every bill): the confirm button
      * stays disabled until the user types this phrase exactly (case-insensitive, trimmed).
      */
     confirmPhrase?: string;

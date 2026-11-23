@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom';
 import { cn } from '../../lib/utils';
 
 /**
- * A place in a page header that a panel further down can draw into (Niraj, 2026-10-23: the Usage tab's period picker
+ * A place in a page header that a panel further down can draw into (the owner, 2026-10-23: the Usage tab's period picker
  * sits beside the tabs, not on a row of its own). The page puts `<HeaderSlot id="x" />` in its header; the panel that
  * owns the control keeps its own state and renders `<IntoHeaderSlot id="x">...</IntoHeaderSlot>`.
  *

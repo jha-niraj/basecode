@@ -21,7 +21,7 @@ import { cn } from "../../lib/utils";
  * "disabled, never hidden" rather than "hide it when it is not needed".
  *
  * Those twelve also disagreed on wording ("Showing 1-20 of 50", "Page 2 of 9 - 50 total",
- * "50 students - page 2 of 9"), on control style (icon-only ghost buttons vs outline Prev/Next),
+ * "50 items - page 2 of 9"), on control style (icon-only ghost buttons vs outline Prev/Next),
  * and three offered no position at all. This component is the single answer to all of that.
  *
  * `numbered` adds first/last jumps and a windowed run of page buttons, for lists long enough that
@@ -38,7 +38,7 @@ export type ListPaginationProps = {
     totalPages: number;
     /** Total row count across all pages. Omit to hide the count from the label. */
     totalItems?: number;
-    /** Plural noun for the count, e.g. "students". Defaults to no noun ("42 total"). */
+    /** Plural noun for the count, e.g. "users". Defaults to no noun ("42 total"). */
     itemNoun?: string;
     /** Required unless `hrefTemplate` is given. */
     onPageChange?: (page: number) => void;
@@ -163,8 +163,9 @@ export function ListPagination({
             </p>
 
             <div className="flex shrink-0 items-center gap-2">
-                {numbered &&
-                    control(1, atStart, "first", <ChevronsLeft className="h-4 w-4" />, "First page")}
+                {/* Numbers and First / Last only from sm: on a 360px phone the full numbered row (First, Previous,
+                    five numbers, Next, Last) ran past the screen edge (a list page, 2026-10-26). */}
+                {numbered && <span className="hidden sm:contents">{control(1, atStart, "first", <ChevronsLeft className="h-4 w-4" />, "First page")}</span>}
 
                 {control(
                     current - 1,
@@ -177,7 +178,7 @@ export function ListPagination({
                     "Previous page",
                 )}
 
-                {numbered &&
+                {numbered && <span className="hidden sm:contents">{
                     windowedPages(current, pageCount).map((p, i) =>
                         p === "gap" ? (
                             <span
@@ -189,7 +190,7 @@ export function ListPagination({
                         ) : (
                             control(p, false, `p-${p}`, p, `Page ${p}`, p === current)
                         ),
-                    )}
+                    )}</span>}
 
                 {control(
                     current + 1,
@@ -202,8 +203,7 @@ export function ListPagination({
                     "Next page",
                 )}
 
-                {numbered &&
-                    control(pageCount, atEnd, "last", <ChevronsRight className="h-4 w-4" />, "Last page")}
+                {numbered && <span className="hidden sm:contents">{control(pageCount, atEnd, "last", <ChevronsRight className="h-4 w-4" />, "Last page")}</span>}
             </div>
         </div>
     );

@@ -91,7 +91,7 @@ function TimelineContent({
 
 // TimelineDate
 // TimeHTMLAttributes (not the generic HTMLAttributes) so the <time>-specific `dateTime`
-// attribute is accepted — matches the base wrapper's useRender.ComponentProps<"time">.
+// attribute is accepted - matches the base wrapper's useRender.ComponentProps<"time">.
 interface TimelineDateProps extends TimeHTMLAttributes<HTMLTimeElement> {
   asChild?: boolean
 }

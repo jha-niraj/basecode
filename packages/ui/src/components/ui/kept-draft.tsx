@@ -3,7 +3,7 @@
 import * as React from "react"
 
 /**
- * A draft that outlives its sheet. Niraj, 2026-10-24: every sheet closes on an outside click, and what was typed is
+ * A draft that outlives its sheet. The owner, 2026-10-24: every sheet closes on an outside click, and what was typed is
  * NOT lost by closing - it stays until it is saved (call `clear()` after a successful save / submit) or the page is
  * hard-refreshed. Reopening the same sheet (same item key, or "new") brings the draft back.
  *
@@ -11,7 +11,7 @@ import * as React from "react"
  *
  * Backed by a module-level Map, so it survives unmount and client navigation and is gone on a hard refresh. A `null`
  * key behaves like plain `useState` (nothing kept). Keys are global across the app - prefix them with the module
- * (`"add-student:new"`, `"monitor:" + id`).
+ * (`"add-customer:new"`, `"monitor:" + id`).
  */
 const drafts = new Map<string, unknown>()
 

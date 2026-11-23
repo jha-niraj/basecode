@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * SortableList - the ONE way to reorder a list in Gurukul (AGENTS.md s6: "Reordering is drag and drop").
+ * SortableList - the ONE way to reorder a list ("reordering is drag and drop", never up/down arrows).
  *
  * Built on `@dnd-kit/core` (the drag library @repo/ui already ships - see `dnd.tsx`). Each row is both a
  * draggable and a drop target; dropping on a row puts the dragged item at that row's index, through the

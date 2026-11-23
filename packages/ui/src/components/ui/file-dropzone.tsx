@@ -10,7 +10,7 @@ import { Progress } from "./progress"
 import { ScrollArea } from "./scroll-area"
 
 /**
- * THE file picker (plan/repo/ui/reui-components-2026-10-23.md task 3.3): drag-drop or press to choose, then a queue
+ * THE file picker: drag-drop or press to choose, then a queue
  * of the chosen files - each with a file-type icon, name, size, its own real upload progress, and remove / retry.
  * Built on `useFileUpload` (ReUI, `@repo/ui/hooks/use-file-upload`).
  *
@@ -18,7 +18,7 @@ import { ScrollArea } from "./scroll-area"
  * `lib/upload-with-progress.ts`). No app URL lives in packages/ui. Without `upload` it is a plain picker - the queue
  * shows the chosen files and `onFilesChange` hands them to the screen.
  *
- * Uploads run one at a time in the order chosen (a phone on school wifi does better with one stream than ten).
+ * Uploads run one at a time in the order chosen (a phone on shared wifi does better with one stream than ten).
  */
 
 export type DropzoneStatus = "queued" | "uploading" | "done" | "error"

@@ -1,7 +1,7 @@
 "use client"
 
 /**
- * SignatureField - THE way a signature is captured (plan/repo/ui/reui-components-2026-10-23.md 2.3).
+ * SignatureField - THE way a signature is captured.
  *
  * Two ways in, one thing out: Draw (the ReUI SignaturePad, undo / redo / clear, a signing line) or Upload (a PNG or
  * JPG of a scanned signature). Either way the caller receives a `File`, and what it does with it - upload to R2 through
@@ -22,6 +22,7 @@ import { cn } from "../../lib/utils"
 import { Button } from "./button"
 import { Spinner } from "./spinner"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./tabs"
+import { useKeptDraft } from "./kept-draft"
 import {
     SignaturePad,
     SignaturePadArea,
@@ -73,6 +74,9 @@ export interface SignatureFieldProps {
     /** Height of the drawing area. */
     padClassName?: string
     className?: string
+    /** Keeps the drawing when the field unmounts (a sheet closed by an outside click) until a hard refresh, like every
+     *  other sheet draft (`useKeptDraft`). Prefix with the module, e.g. `"ack-sign:" + id`. Cleared after a save. */
+    draftKey?: string | null
     ref?: Ref<SignatureFieldHandle>
 }
 
@@ -90,11 +94,12 @@ export function SignatureField({
     hint,
     padClassName,
     className,
+    draftKey = null,
     ref,
 }: SignatureFieldProps) {
     const [mode, setMode] = useState<SignatureFieldMode>(defaultMode)
     // Held here, not inside the pad, so switching to Upload and back keeps the drawing.
-    const [strokes, setStrokes] = useState<SignaturePadStroke[]>([])
+    const [strokes, setStrokes, clearStrokes] = useKeptDraft<SignaturePadStroke[]>(draftKey, () => [])
     const [picked, setPicked] = useState<File | null>(null)
     const [pickError, setPickError] = useState<string | null>(null)
     const [saving, setSaving] = useState(false)
@@ -117,7 +122,7 @@ export function SignatureField({
     }
 
     const clearAll = () => {
-        setStrokes([])
+        clearStrokes()
         setPicked(null)
         setPickError(null)
         if (fileRef.current) fileRef.current.value = ""

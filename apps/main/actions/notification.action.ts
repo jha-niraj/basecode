@@ -1,117 +1,115 @@
 "use server"
 
-import { getServerSession } from '@repo/auth'
-import { db } from '@repo/db'
-import { notification } from '@repo/db/schema'
-import { eq, desc, and, count } from '@repo/db'
-import { revalidatePath } from 'next/cache'
+import { and, count, desc, eq } from "@repo/db"
+import { db } from "@repo/db"
+import { notification } from "@repo/db/schema"
+import { getSession } from "@repo/auth/next"
+import { fail, failWith, ok, type ActionResult } from "@repo/errors"
 
-type NotificationType = 'info' | 'success' | 'warning' | 'error'
+/**
+ * The signed-in person's notifications (the bell at the foot of the rail). Every export checks the session itself.
+ * Creating a notification is NOT here - a 'use server' export is a public endpoint, so `createNotification` lives in
+ * `lib/notifications.ts` (server-only) for other server code to call.
+ */
+export type NotificationRow = typeof notification.$inferSelect
 
-interface CreateNotificationInput {
-    userId: string
-    title: string
-    message: string
-    type?: NotificationType
-    actionUrl?: string
-    actionLabel?: string
-    metadata?: Record<string, unknown>
+/** One page of the /notifications list. `total` counts the filter's rows; `unread` is always the unread count. */
+export interface NotificationPage {
+    items: NotificationRow[]
+    total: number
+    unread: number
+    page: number
+    pageSize: number
 }
 
-interface NotificationResponse<T = unknown> {
-    success: boolean
-    data?: T
-    error?: string
-}
+const PAGE_SIZE = 20
 
-export async function getNotifications(page = 1, limit = 20): Promise<NotificationResponse<{ items: typeof notification.$inferSelect[]; total: number; unread: number }>> {
-    const session = await getServerSession()
-    if (!session) return { success: false, error: 'Unauthorized' }
-
-    const [items, [totalResult], [unreadResult]] = await Promise.all([
-        db.query.notification.findMany({
-            where: (n, { eq }) => eq(n.userId, session.user.id),
-            orderBy: [desc(notification.createdAt)],
-            limit,
-            offset: (page - 1) * limit,
-        }),
-        db.select({ count: count() }).from(notification).where(eq(notification.userId, session.user.id)),
-        db.select({ count: count() }).from(notification).where(
-            and(eq(notification.userId, session.user.id), eq(notification.isRead, false)),
-        ),
-    ])
-
-    return {
-        success: true,
-        data: {
-            items,
-            total: totalResult?.count ?? 0,
-            unread: unreadResult?.count ?? 0,
-        },
+export async function listNotifications(input: { filter: "all" | "unread"; page: number }): Promise<ActionResult<NotificationPage>> {
+    const session = await getSession()
+    if (!session) return failWith("auth", "Your session has ended. Sign in again.")
+    try {
+        const page = Number.isFinite(input.page) ? Math.max(1, Math.floor(input.page)) : 1
+        const mine = eq(notification.userId, session.user.id)
+        const unreadOnly = and(mine, eq(notification.isRead, false))
+        const where = input.filter === "unread" ? unreadOnly : mine
+        const [items, [total], [unread]] = await Promise.all([
+            db.select().from(notification).where(where)
+                .orderBy(desc(notification.createdAt))
+                .limit(PAGE_SIZE).offset((page - 1) * PAGE_SIZE),
+            db.select({ value: count() }).from(notification).where(where),
+            db.select({ value: count() }).from(notification).where(unreadOnly),
+        ])
+        return ok({ items, total: total?.value ?? 0, unread: unread?.value ?? 0, page, pageSize: PAGE_SIZE })
+    } catch (err) {
+        return fail(err, "notifications.page")
     }
 }
 
-export async function getUnreadCount(): Promise<NotificationResponse<number>> {
-    const session = await getServerSession()
-    if (!session) return { success: false, error: 'Unauthorized' }
-
-    const [result] = await db
-        .select({ count: count() })
-        .from(notification)
-        .where(and(eq(notification.userId, session.user.id), eq(notification.isRead, false)))
-
-    return { success: true, data: result?.count ?? 0 }
+export async function getNotifications(limit = 30): Promise<ActionResult<{ items: NotificationRow[]; unread: number }>> {
+    const session = await getSession()
+    if (!session) return failWith("auth", "Your session has ended. Sign in again.")
+    try {
+        const take = Math.min(Math.max(1, limit), 100)
+        const [items, [unread]] = await Promise.all([
+            db.select().from(notification)
+                .where(eq(notification.userId, session.user.id))
+                .orderBy(desc(notification.createdAt))
+                .limit(take),
+            db.select({ value: count() }).from(notification)
+                .where(and(eq(notification.userId, session.user.id), eq(notification.isRead, false))),
+        ])
+        return ok({ items, unread: unread?.value ?? 0 })
+    } catch (err) {
+        return fail(err, "notifications.list")
+    }
 }
 
-export async function markAsRead(notificationId: string): Promise<NotificationResponse> {
-    const session = await getServerSession()
-    if (!session) return { success: false, error: 'Unauthorized' }
-
-    await db
-        .update(notification)
-        .set({ isRead: true, readAt: new Date() })
-        .where(and(eq(notification.id, notificationId), eq(notification.userId, session.user.id)))
-
-    revalidatePath('/home')
-    return { success: true }
+export async function getUnreadCount(): Promise<ActionResult<number>> {
+    const session = await getSession()
+    if (!session) return failWith("auth", "Your session has ended. Sign in again.")
+    try {
+        const [row] = await db.select({ value: count() }).from(notification)
+            .where(and(eq(notification.userId, session.user.id), eq(notification.isRead, false)))
+        return ok(row?.value ?? 0)
+    } catch (err) {
+        return fail(err, "notifications.unread")
+    }
 }
 
-export async function markAllAsRead(): Promise<NotificationResponse> {
-    const session = await getServerSession()
-    if (!session) return { success: false, error: 'Unauthorized' }
-
-    await db
-        .update(notification)
-        .set({ isRead: true, readAt: new Date() })
-        .where(and(eq(notification.userId, session.user.id), eq(notification.isRead, false)))
-
-    revalidatePath('/home')
-    return { success: true }
+export async function markAsRead(notificationId: string): Promise<ActionResult<null>> {
+    const session = await getSession()
+    if (!session) return failWith("auth", "Your session has ended. Sign in again.")
+    try {
+        await db.update(notification)
+            .set({ isRead: true, readAt: new Date() })
+            .where(and(eq(notification.id, notificationId), eq(notification.userId, session.user.id)))
+        return ok(null)
+    } catch (err) {
+        return fail(err, "notifications.read")
+    }
 }
 
-export async function deleteNotification(notificationId: string): Promise<NotificationResponse> {
-    const session = await getServerSession()
-    if (!session) return { success: false, error: 'Unauthorized' }
-
-    await db
-        .delete(notification)
-        .where(and(eq(notification.id, notificationId), eq(notification.userId, session.user.id)))
-
-    revalidatePath('/home')
-    return { success: true }
+export async function markAllAsRead(): Promise<ActionResult<null>> {
+    const session = await getSession()
+    if (!session) return failWith("auth", "Your session has ended. Sign in again.")
+    try {
+        await db.update(notification)
+            .set({ isRead: true, readAt: new Date() })
+            .where(and(eq(notification.userId, session.user.id), eq(notification.isRead, false)))
+        return ok(null)
+    } catch (err) {
+        return fail(err, "notifications.readAll")
+    }
 }
 
-// Internal: create a notification for a user (call from other server actions)
-export async function createNotification(input: CreateNotificationInput): Promise<NotificationResponse> {
-    await db.insert(notification).values({
-        userId: input.userId,
-        title: input.title,
-        message: input.message,
-        type: input.type ?? 'info',
-        actionUrl: input.actionUrl,
-        actionLabel: input.actionLabel,
-        metadata: input.metadata,
-        createdAt: new Date(),
-    })
-    return { success: true }
+export async function deleteNotification(notificationId: string): Promise<ActionResult<null>> {
+    const session = await getSession()
+    if (!session) return failWith("auth", "Your session has ended. Sign in again.")
+    try {
+        await db.delete(notification)
+            .where(and(eq(notification.id, notificationId), eq(notification.userId, session.user.id)))
+        return ok(null)
+    } catch (err) {
+        return fail(err, "notifications.delete")
+    }
 }
