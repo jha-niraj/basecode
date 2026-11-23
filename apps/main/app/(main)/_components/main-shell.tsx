@@ -3,13 +3,14 @@
 import * as React from "react"
 import { useRouter } from "next/navigation"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
-import { ArrowRight } from "lucide-react"
+import { ArrowRight, HelpCircle } from "lucide-react"
 import { SITE } from "@repo/core/site"
 import { AppShell } from "@repo/ui/components/shell/app-shell"
 import { AppLink, markNavPending } from "@repo/ui/components/app-link"
 import { NotificationsPanel, type NotificationView } from "@repo/ui/components/ui/notifications-panel"
 import type { ShellUser } from "@repo/ui/lib/shell"
 import { getNotifications, getUnreadCount, markAllAsRead, markAsRead } from "@/actions/notification.action"
+import { getBillingOverview } from "@/actions/billing.action"
 import { MAIN_NAV, MAIN_RAIL_COOKIE, ROUTES } from "@/lib/navigation"
 
 /**
@@ -42,6 +43,17 @@ export function MainShell({ user, initialPinned, initialRailWidth, children }: {
         refetchInterval: 60_000,
     })
 
+    // The balance for the account menu's credits box.
+    const credits = useQuery({
+        queryKey: ["billing", "balance"],
+        queryFn: async (): Promise<number> => {
+            const res = await getBillingOverview()
+            if (!res.success) throw new Error(res.error)
+            return res.data.creditBalance
+        },
+        staleTime: 60_000,
+    })
+
     const list = useQuery({
         queryKey: KEYS.list,
         enabled: panelOpen,
@@ -67,7 +79,17 @@ export function MainShell({ user, initialPinned, initialRailWidth, children }: {
             <AppShell
                 brand={{ name: SITE.name, href: ROUTES.home }}
                 nav={MAIN_NAV}
-                account={{ user, profileHref: ROUTES.profile, signInPath: ROUTES.signIn, queryClient }}
+                account={{
+                    user, profileHref: ROUTES.profile, signInPath: ROUTES.signIn, queryClient,
+                    settingsHref: ROUTES.settings,
+                    links: [{ label: "Help", href: ROUTES.help, icon: HelpCircle }],
+                    credits: {
+                        label: "Credits",
+                        value: credits.data !== undefined ? `${credits.data.toLocaleString()} left` : undefined,
+                        secondary: { label: "Usage", href: ROUTES.settingsUsage },
+                        primary: { label: "Top up", href: ROUTES.settingsBilling },
+                    },
+                }}
                 notifications={{ unread: unread.data ?? 0, onOpen: () => setPanelOpen(true) }}
                 initialPinned={initialPinned}
                 initialRailWidth={initialRailWidth}

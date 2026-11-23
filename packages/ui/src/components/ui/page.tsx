@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation"
 import { AppLink, markNavPending } from "../app-link"
 import { cn } from "../../lib/utils"
 import { Button } from "./button"
+import { SplitButton } from "./split-button"
 import { GrainCover, type GrainTone } from "./grain-cover"
 import { ScrollArea } from "./scroll-area"
 import { Skeleton } from "./skeleton"
@@ -87,6 +88,11 @@ export interface PageAction {
     title?: string
     /** `href` opens in a new tab (a live page, an outside site) rather than navigating the app. */
     external?: boolean
+    /**
+     * 2-4 ways to do this one action ("New note" -> blank / from a template / import): the button becomes a SplitButton
+     * that opens them, and `onClick` / `href` are ignored. Folded into More, they list there.
+     */
+    options?: { key: string; label: string; icon?: React.ReactNode; onClick: () => void }[]
 }
 
 export interface PageProps {
@@ -398,6 +404,18 @@ function PageTabs({ tabs, tab, onTabChange }: { tabs: PageTab[]; tab?: string; o
 
 function ActionButton({ action, iconOnly }: { action: PageAction; iconOnly?: boolean }) {
     const variant = action.variant ?? (action.primary ? "default" : "outline")
+    if (action.options?.length) {
+        return (
+            <SplitButton
+                label={action.label}
+                icon={action.icon}
+                iconOnly={iconOnly}
+                variant={action.primary ? "primary" : "secondary"}
+                disabled={action.disabled || action.pending}
+                options={action.options.map((o) => ({ label: o.label, icon: o.icon, onSelect: o.onClick }))}
+            />
+        )
+    }
     const inner = (
         <>
             {action.pending ? <Spinner className="h-4 w-4" /> : action.icon}
@@ -517,7 +535,9 @@ function MoreMenu({ actions }: { actions: PageAction[] }) {
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-52">
-                {actions.map((a, i) => (
+                {actions.flatMap((a) => a.options?.length
+                    ? a.options.map((o): PageAction => ({ key: `${a.key}-${o.key}`, label: o.label, icon: o.icon, onClick: o.onClick }))
+                    : [a]).map((a, i) => (
                     <React.Fragment key={a.key}>
                         {i > 0 && a.variant === "destructive" && <DropdownMenuSeparator />}
                         {a.href ? (

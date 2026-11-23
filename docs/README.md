@@ -17,7 +17,9 @@ from the code.
 1. [`AGENTS.md`](../AGENTS.md) - the rules (process, platform, env, database, auth, UI, data fetching, AI cost).
 2. [`architecture.md`](architecture.md) - apps, packages, request flow, auth, shell, errors, storage.
 3. [`modules.md`](modules.md) - every route in main and admin: files, tables, states.
-4. [`ui-kit.md`](ui-kit.md) - what is in `@repo/ui` and when to use which piece.
+4. [`ui-kit.md`](ui-kit.md) - what is in `@repo/ui` and when to use which piece; [`clean-ui/`](clean-ui/README.md) - the
+   look (learned from runable.com): tone fills, 36px controls, soft menus, split button, chips, filter sheet, the
+   account menu, the chat start screen.
 5. The doc for the area you will touch: [`data.md`](data.md), [`ai.md`](ai.md), [`env-and-deploy.md`](env-and-deploy.md),
    [`recipes.md`](recipes.md), [`payments.md`](payments.md), [`workspaces.md`](workspaces.md) (adding teams later).
 6. [`plan/INDEX.md`](../plan/INDEX.md) - what is open right now; write your own plan doc before code (AGENTS.md section 1).

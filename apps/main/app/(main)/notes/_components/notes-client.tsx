@@ -5,7 +5,8 @@ import { keepPreviousData, useQuery } from "@tanstack/react-query"
 import { useTable, type ColumnDef } from "@tanstack/react-table"
 import { Archive, ArchiveRestore, FileText, ListFilter, NotebookPen, PanelRightOpen, PencilLine, Pin, Plus, RotateCw, Search, SearchX, MessagesSquare, Trash2 } from "lucide-react"
 import type { CsvColumn } from "@repo/core/csv"
-import { AppLink } from "@repo/ui/components/app-link"
+import { useRouter } from "next/navigation"
+import { AppLink, markNavPending } from "@repo/ui/components/app-link"
 import { CategoryBarChart, ChartPanel } from "@repo/ui/components/charts/panel-charts"
 import { ExportCsvButton } from "@repo/ui/components/export-csv-button"
 import { DataGrid, DataGridContainer, dataGridFeatures, type DataGridFeatures } from "@repo/ui/components/reui/data-grid/data-grid"
@@ -86,6 +87,7 @@ export function NotesClient({ initialParams, initialList, initialStats, initialO
     /** `?open=<id>` named a note that is not there (deleted, or someone else's). */
     openMissing: boolean
 }) {
+    const router = useRouter()
     const [params, setParams] = React.useState<NoteListParams>(initialParams)
     const [search, setSearch] = React.useState(initialParams.q)
     const debounced = useDebounce(search.trim(), 300)
@@ -262,7 +264,14 @@ export function NotesClient({ initialParams, initialList, initialStats, initialO
             tabs={NOTE_TABS}
             tab={params.tab}
             onTabChange={setTab}
-            actions={[{ key: "new", label: "New note", icon: <Plus className="h-3.5 w-3.5" />, primary: true, onClick: openNew, keepSheetOpen: true }]}
+            // One "New note" with its two ways in - a split button (clean controls, owner 2026-11-23, after runable.com).
+            actions={[{
+                key: "new", label: "New note", icon: <Plus className="h-3.5 w-3.5" />, primary: true, keepSheetOpen: true,
+                options: [
+                    { key: "write", label: "Write it yourself", icon: <PencilLine />, onClick: openNew },
+                    { key: "ai", label: "Draft it with the AI", icon: <MessagesSquare />, onClick: () => { markNavPending(ROUTES.ai); router.push(ROUTES.ai) } },
+                ],
+            }]}
         >
             {firstRun ? (
                 <EmptyState

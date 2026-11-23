@@ -14,7 +14,7 @@ import { usePinPeek } from "../../hooks/use-pin-peek"
 import { RAIL_WIDTH, activeHref, railWidthCookie, tabItems, type ShellNavSection } from "../../lib/shell"
 import { SHELL_SHADOW_LEFT, SHELL_SHADOW_RIGHT, SHELL_SHADOW_TOP, SHELL_SURFACE } from "../../lib/surfaces"
 import { cn } from "../../lib/utils"
-import { ShellRail, type ShellAccount, type ShellBrand, type ShellNotifications } from "./shell-rail"
+import { ShellRail, type ShellAccount, type ShellAssistant, type ShellBrand, type ShellNotifications } from "./shell-rail"
 
 /**
  * THE APP SHELL - one for every app (apps/main, apps/admin). AGENTS.md "The shell".
@@ -49,15 +49,29 @@ export interface AppShellProps {
     cookieName: string
     /** A full-height column at the right edge (desktop). */
     aside?: React.ReactNode
-    /** Extra controls in the rail footer, before the bell. */
+    /** Extra round icons in the rail footer, after the account chip, before the bell. */
     railFooterExtra?: React.ReactNode
+    /** The assistant's own row above the account row (e.g. "Ask AI" -> /ai). */
+    assistant?: ShellAssistant
     children: React.ReactNode
 }
 
 export function AppShell({
-    brand, nav, account, notifications, initialPinned, initialRailWidth, cookieName, aside, railFooterExtra, children,
+    brand, nav, account, notifications, initialPinned, initialRailWidth, cookieName, aside, railFooterExtra, assistant, children,
 }: AppShellProps) {
     const pp = usePinPeek({ initialPinned, cookieName })
+    /*
+     * The account menu is portalled OUT of the rail, so moving into it reads as leaving the rail: a peeked rail slid away
+     * under its open menu. While the menu is open the rail stays; when it closes, a peeked rail closes with it.
+     */
+    const [menuOpen, setMenuOpenRaw] = React.useState(false)
+    // Whether the pointer is over the rail itself: closing the menu with the pointer back ON the rail keeps the rail.
+    const pointerInRail = React.useRef(false)
+    const setMenuOpen = React.useCallback((open: boolean) => {
+        setMenuOpenRaw(open)
+        if (open) pp.holdPeek()
+        else if (!pp.isPinned && !pointerInRail.current) pp.unpeek()
+    }, [pp])
     const rail = useRailWidth(cookieName, initialRailWidth)
     const isPeeking = pp.peeking && !pp.isPinned
     const hidden = !pp.isPinned && !isPeeking
@@ -123,8 +137,8 @@ export function AppShell({
                 // Off-screen by a little more than its width so the shadow does not bleed. Inline: Tailwind v4
                 // translate-x sets `translate`, not `transform`, and the transition is on transform.
                 style={{ transform: hidden ? "translateX(calc(-100% - 32px))" : "translateX(0)" }}
-                onPointerEnter={pp.isPinned ? undefined : pp.holdPeek}
-                onPointerLeave={pp.isPinned ? undefined : pp.unpeek}
+                onPointerEnter={() => { pointerInRail.current = true; if (!pp.isPinned) pp.holdPeek() }}
+                onPointerLeave={() => { pointerInRail.current = false; if (!pp.isPinned && !menuOpen) pp.unpeek() }}
                 onFocusCapture={pp.isPinned ? undefined : pp.peek}
                 onPointerDownCapture={pp.isPinned ? undefined : () => pp.lockPeek()}
                 onClickCapture={pp.isPinned ? undefined : (e) => {
@@ -155,6 +169,8 @@ export function AppShell({
                     notifications={notifications}
                     pin={{ isPinned: pp.isPinned, setPinned: pp.setPinned }}
                     footerExtra={railFooterExtra}
+                    assistant={assistant}
+                    menu={{ open: menuOpen, onOpenChange: setMenuOpen }}
                 />
                 {pp.isPinned && (
                     // The drag edge: 200-360px, double-click resets, the width is kept in a cookie (no jump on load).
@@ -215,6 +231,7 @@ export function AppShell({
                         notifications={notifications ? { ...notifications, onOpen: () => { setMoreOpen(false); notifications.onOpen() } } : undefined}
                         onNavigate={() => setMoreOpen(false)}
                         footerExtra={railFooterExtra}
+                        assistant={assistant ? { ...assistant, onClick: assistant.onClick ? () => { setMoreOpen(false); assistant.onClick?.() } : undefined } : undefined}
                     />
                 </SheetContent>
             </Sheet>

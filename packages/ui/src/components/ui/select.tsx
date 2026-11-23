@@ -52,13 +52,13 @@ const SelectTrigger = React.forwardRef<
 			`
       flex w-full items-center justify-between
       rounded-xl border
-      bg-white dark:bg-neutral-900
-      border-neutral-200 dark:border-neutral-700
+      bg-neutral-950/[0.03] dark:bg-white/[0.04]
+      border-neutral-950/[0.07] dark:border-white/[0.08]
       px-3 font-medium
       text-neutral-700 dark:text-neutral-200
 
       transition-colors
-      hover:bg-neutral-50 dark:hover:bg-neutral-800
+      hover:bg-neutral-950/[0.05] dark:hover:bg-white/[0.06]
 
       focus-visible:outline-none
       focus-visible:border-neutral-400 dark:focus-visible:border-neutral-500
@@ -440,10 +440,10 @@ const SelectContent = React.forwardRef<
 				className={cn(
 					`
         z-[80] max-h-96 overflow-hidden
-        rounded-xl border
-        bg-white dark:bg-popover
-        border-neutral-200 dark:border-neutral-800
-        shadow-xl
+        rounded-2xl
+        bg-neutral-50 dark:bg-neutral-900
+        ring-[0.5px] ring-neutral-950/10 dark:ring-white/10
+        shadow-[0_8px_24px_-8px_rgba(0,0,0,0.12)] dark:shadow-[0_8px_24px_-8px_rgba(0,0,0,0.6)]
         `,
 					// The menu now arrives instead of appearing. POPPER_MOTION carries the exit
 					// half too, which is what Radix waits on before unmounting - without it the
@@ -476,7 +476,7 @@ const SelectContent = React.forwardRef<
 				<SelectPrimitive.Viewport
 					ref={viewportRef}
 					className={cn(
-						"p-1",
+						"p-1.5",
 						position === "popper" &&
 						"min-w-[var(--radix-select-trigger-width)]"
 					)}
@@ -556,13 +556,13 @@ const SelectItem = React.forwardRef<
 			`
       relative flex w-full cursor-pointer select-none items-center gap-2 outline-none [&_svg]:shrink-0
       data-[gk-two-line=true]:items-start
-      rounded-lg py-2 pl-8 pr-2 text-sm
+      min-h-9 rounded-xl py-2 pl-8 pr-3 text-sm font-medium
       text-neutral-700 dark:text-neutral-200
 
       transition-colors duration-150
-      focus:bg-neutral-100 dark:focus:bg-neutral-800
-      data-[state=checked]:bg-neutral-200
-      dark:data-[state=checked]:bg-neutral-700
+      focus:bg-neutral-950/[0.05] dark:focus:bg-white/[0.07]
+      data-[state=checked]:bg-neutral-950/[0.07]
+      dark:data-[state=checked]:bg-white/[0.1]
 
       data-[disabled]:pointer-events-none
       data-[disabled]:opacity-50

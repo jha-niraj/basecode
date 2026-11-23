@@ -2,11 +2,11 @@
 
 import * as React from "react"
 import { createPortal } from "react-dom"
-import { Bell, LogOut, PanelLeftClose, PanelLeftOpen } from "lucide-react"
+import { Bell, ChevronRight, PanelLeftClose, PanelLeftOpen, Settings, UserRound } from "lucide-react"
 import { usePathname } from "next/navigation"
 
 import { AppLink } from "../app-link"
-import { ThemeSwitch } from "../theme-switch"
+import { AccountMenu, AccountMenuIcon, type AccountMenuProps } from "../account-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar"
 import { Button } from "../ui/button"
 import { ScrollArea } from "../ui/scroll-area"
@@ -17,7 +17,7 @@ import { activeHref, type ShellMenuLink, type ShellNavSection, type ShellUser } 
 import { cn } from "../../lib/utils"
 
 /**
- * The rail's CONTENT - brand row, nav, footer (theme, bell, account). The same tree renders in the desktop rail and in
+ * The rail's CONTENT - brand row, nav, footer (the assistant row, then the account chip + bell). The same tree renders in the desktop rail and in
  * the phone "More" sheet, so the two can never disagree. The frame around it (fixed, pinned / peeking, shadow) is
  * `AppShell`'s job.
  */
@@ -45,6 +45,19 @@ export interface ShellAccount {
     queryClient?: { clear: () => void } | null
     /** Rows between Profile and Sign out. */
     links?: ShellMenuLink[]
+    /** Where Settings lives; adds a Settings row to the account menu. */
+    settingsHref?: string
+    /** The credits box at the top of the account menu (balance + Usage / Top up). */
+    credits?: AccountMenuProps["credits"]
+}
+
+/** The assistant on its own full-width row above the account row (owner, 2026-11-23 - "less crowded"). */
+export interface ShellAssistant {
+    label: string
+    icon: React.ReactNode
+    href?: string
+    onClick?: () => void
+    active?: boolean
 }
 
 export interface ShellRailProps {
@@ -56,8 +69,11 @@ export interface ShellRailProps {
     pin?: { isPinned: boolean; setPinned: (v: boolean) => void }
     /** Called after a nav link is pressed (the phone sheet closes itself). */
     onNavigate?: () => void
-    /** Extra controls in the footer row, before the bell. */
+    /** Extra round icons in the footer row, after the account chip, before the bell. */
     footerExtra?: React.ReactNode
+    assistant?: ShellAssistant
+    /** The account menu's open state, so the shell keeps a peeked rail out while the menu is open. */
+    menu?: { open: boolean; onOpenChange: (open: boolean) => void }
 }
 
 function initials(name: string): string {
@@ -69,7 +85,7 @@ function initials(name: string): string {
 const ICON_BTN =
     "flex h-7 w-7 shrink-0 cursor-pointer items-center justify-center rounded-md p-0 text-neutral-600 outline-none transition-colors hover:bg-neutral-100 hover:text-neutral-900 focus-visible:ring-2 focus-visible:ring-neutral-400 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-white"
 
-export function ShellRail({ brand, nav, account, notifications, pin, onNavigate, footerExtra }: ShellRailProps) {
+export function ShellRail({ brand, nav, account, notifications, pin, onNavigate, footerExtra, assistant, menu }: ShellRailProps) {
     const pathname = usePathname() ?? "/"
     const active = activeHref(pathname, nav)
 
@@ -147,76 +163,86 @@ export function ShellRail({ brand, nav, account, notifications, pin, onNavigate,
                 </nav>
             </ScrollArea>
 
-            <div className="flex shrink-0 flex-col gap-1 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2">
-                <div className="flex items-center gap-1 px-1 pb-1">
-                    <ThemeSwitch />
-                    <div className="ml-auto flex items-center gap-1">
-                        {footerExtra}
-                        {notifications && (
-                            <Button variant="ghost"
-                                type="button"
-                                onClick={notifications.onOpen}
-                                aria-label={notifications.unread > 0 ? `Notifications, ${notifications.unread} unread` : "Notifications"}
-                                className={cn(ICON_BTN, "relative")}
-                            >
-                                <Bell className="h-4 w-4" />
-                                {notifications.unread > 0 && (
-                                    <span aria-hidden className="absolute right-1 top-1 h-2 w-2 rounded-full bg-rose-500 ring-2 ring-white dark:ring-[#161718]" />
-                                )}
-                            </Button>
-                        )}
-                    </div>
+            {/*
+             * The footer (owner, 2026-11-23, after runable.com): the assistant on its own row, then ONE row - the account
+             * chip (first name; opens on hover) + round icons. Theme, sounds, profile, settings, credits and sign out live
+             * in the account menu, so the rail keeps its room for navigation.
+             */}
+            <div className="flex shrink-0 flex-col gap-2 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2">
+                {assistant ? <AssistantRow assistant={assistant} onNavigate={onNavigate} /> : null}
+                <div className="flex items-center gap-1">
+                    <AccountRow account={account} onNavigate={onNavigate} menu={menu} />
+                    {footerExtra}
+                    {notifications && (
+                        <AccountMenuIcon
+                            label={notifications.unread > 0 ? `Notifications, ${notifications.unread} unread` : "Notifications"}
+                            count={notifications.unread}
+                            onClick={notifications.onOpen}
+                        >
+                            <Bell />
+                        </AccountMenuIcon>
+                    )}
                 </div>
-                <AccountRow account={account} onNavigate={onNavigate} />
             </div>
         </div>
     )
 }
 
-/** The account row: avatar, name, email; opens a menu with Profile, the app's extra links and Sign out. */
-export function AccountRow({ account, onNavigate }: { account: ShellAccount; onNavigate?: () => void }) {
+function AssistantRow({ assistant, onNavigate }: { assistant: ShellAssistant; onNavigate?: () => void }) {
+    const cls = cn(
+        "flex h-9 w-full items-center justify-center gap-2 rounded-xl border text-sm font-medium transition-colors [&_svg]:size-4",
+        assistant.active
+            ? "border-neutral-900 bg-neutral-900 text-white hover:bg-neutral-800 dark:border-white dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-100"
+            : "border-neutral-950/[0.07] bg-neutral-950/[0.03] text-neutral-800 hover:bg-neutral-950/[0.06] dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-neutral-100 dark:hover:bg-white/[0.08]",
+    )
+    if (assistant.href) {
+        return (
+            <Button asChild variant="ghost" className={cls}>
+                <AppLink href={assistant.href} onClick={onNavigate}>{assistant.icon}{assistant.label}</AppLink>
+            </Button>
+        )
+    }
+    return <Button type="button" variant="ghost" onClick={assistant.onClick} className={cls}>{assistant.icon}{assistant.label}</Button>
+}
+
+/** The account chip and its one menu (packages/ui account-menu.tsx): credits, Profile, Settings, the app's links,
+ *  Appearance, Sounds, Sign out. */
+export function AccountRow({ account, onNavigate, menu }: {
+    account: ShellAccount
+    onNavigate?: () => void
+    menu?: { open: boolean; onOpenChange: (open: boolean) => void }
+}) {
     const { user } = account
     const { signOut, pending, prefetchProps } = useSignOut({ signInPath: account.signInPath, queryClient: account.queryClient })
     const [mounted, setMounted] = React.useState(false)
     React.useEffect(() => setMounted(true), [])
-
-    // No menu: the row IS the way to Profile, and sign-out is one press beside it (owner, 2026-11-23 - a menu holding
-    // two items was a detour).
+    const go = onNavigate ? () => onNavigate() : undefined
     return (
         <>
-            <div className="flex min-w-0 items-center gap-1">
-                <AppLink
-                    href={account.profileHref}
-                    onClick={onNavigate}
-                    className="flex min-w-0 flex-1 cursor-pointer items-center gap-2.5 rounded-lg px-2 py-1.5 hover:bg-neutral-100 dark:hover:bg-neutral-800/60"
-                >
-                    <Avatar className="h-8 w-8 shrink-0">
+            <AccountMenu
+                name={user.name}
+                subtitle={user.email}
+                avatar={
+                    <Avatar>
                         {user.image ? <AvatarImage src={user.image} alt="" /> : null}
                         <AvatarFallback className="text-xs font-medium">{initials(user.name)}</AvatarFallback>
                     </Avatar>
-                    <span className="flex min-w-0 flex-1 flex-col">
-                        <span className="truncate text-sm font-medium text-neutral-900 dark:text-white">{user.name}</span>
-                        <span className="truncate text-xs text-neutral-600 dark:text-neutral-400">{user.email}</span>
-                    </span>
-                </AppLink>
-                <Tooltip>
-                    <TooltipTrigger asChild>
-                        <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon-sm"
-                            aria-label="Sign out"
-                            disabled={pending}
-                            onClick={() => { void signOut() }}
-                            {...prefetchProps}
-                            className="shrink-0 rounded-lg text-neutral-600 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white"
-                        >
-                            <LogOut className="h-4 w-4" />
-                        </Button>
-                    </TooltipTrigger>
-                    <TooltipContent side="top">Sign out</TooltipContent>
-                </Tooltip>
-            </div>
+                }
+                open={menu?.open}
+                onOpenChange={menu?.onOpenChange}
+                credits={account.credits}
+                items={[
+                    { key: "profile", label: "Profile", icon: <UserRound />, href: account.profileHref, onSelect: go },
+                    ...(account.settingsHref ? [{ key: "settings", label: "Settings", icon: <Settings />, href: account.settingsHref }] : []),
+                    ...(account.links ?? []).map((l) => {
+                        const Icon = l.icon
+                        return { key: l.href, label: l.label, icon: Icon ? <Icon /> : <ChevronRight />, href: l.href }
+                    }),
+                ]}
+                onSignOut={() => { void signOut() }}
+                signingOut={pending}
+                signOutProps={prefetchProps}
+            />
             {/* Through a portal: the rail's transform would trap a `fixed` layer inside it. */}
             {pending && mounted ? createPortal(<SigningOutScreen />, document.body) : null}
         </>

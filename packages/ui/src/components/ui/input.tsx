@@ -11,17 +11,17 @@ const Input = React.forwardRef<
 			type={type}
 			className={cn(
 				`
-					flex h-11 w-full
+					flex h-9 w-full
 					rounded-xl border
-					bg-white dark:bg-neutral-900
-					border-neutral-200 dark:border-neutral-700
+					bg-neutral-950/[0.03] dark:bg-white/[0.04]
+					border-neutral-950/[0.07] dark:border-white/[0.08]
 					px-3 text-sm
 
 					text-neutral-900 dark:text-neutral-100
 					placeholder:text-neutral-400 dark:placeholder:text-neutral-500
 
 					transition-colors
-					hover:bg-neutral-50 dark:hover:bg-neutral-800
+					hover:bg-neutral-950/[0.05] dark:hover:bg-white/[0.06]
 
 					focus-visible:outline-none
 					focus-visible:border-neutral-400 dark:focus-visible:border-neutral-500

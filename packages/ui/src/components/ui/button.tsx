@@ -28,17 +28,17 @@ const buttonVariants = cva(
 				destructive:
 					"bg-destructive text-destructive-foreground hover:bg-destructive/90",
 				outline:
-					"border border-input bg-background hover:bg-accent hover:text-accent-foreground",
+					"border border-neutral-950/[0.07] bg-neutral-950/[0.03] hover:bg-neutral-950/[0.06] dark:border-white/[0.08] dark:bg-white/[0.04] dark:hover:bg-white/[0.08]",
 				secondary:
 					"bg-secondary text-secondary-foreground hover:bg-secondary/80",
 				ghost: "hover:bg-accent hover:text-accent-foreground",
 				link: "text-primary underline-offset-4 hover:underline",
 			},
 			size: {
-				default: "h-10 px-4 py-2",
+				default: "h-9 px-4",  // 36px, the inputs' height (clean controls, 2026-11-23)
 				sm: "h-9 px-3",
 				lg: "h-11 px-8",
-				icon: "h-10 w-10",
+				icon: "h-9 w-9",
 				/* Ported ReUI components (color-picker, signature-pad) use shadcn's small icon size. */
 				"icon-sm": "h-8 w-8",
 			},

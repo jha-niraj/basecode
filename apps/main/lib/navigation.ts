@@ -1,4 +1,4 @@
-import { HelpCircle, LayoutDashboard, NotebookPen, Settings, MessagesSquare } from "lucide-react"
+import { LayoutDashboard, NotebookPen, MessagesSquare } from "lucide-react"
 import type { ShellNavSection } from "@repo/ui/lib/shell"
 
 /**
@@ -49,12 +49,6 @@ export const MAIN_NAV: ShellNavSection[] = [
             { name: "Notes", href: ROUTES.notes, icon: NotebookPen, tab: true },
         ],
     },
-    {
-        id: "account",
-        label: "Account",
-        items: [
-            { name: "Settings", href: ROUTES.settings, icon: Settings, match: "/settings", tab: true },
-            { name: "Help", href: ROUTES.help, icon: HelpCircle },
-        ],
-    },
+    // Settings and Help live in the account menu at the bottom of the rail (owner, 2026-11-23, after runable.com):
+    // the rail is for the product, the menu for everything personal.
 ]

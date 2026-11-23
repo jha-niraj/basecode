@@ -34,14 +34,19 @@ unstyled). A new package that ships class names needs its own `@source` line her
 | Piece | Import | When |
 |---|---|---|
 | `AppShell` | `components/shell/app-shell` | THE signed-in shell (main `MainShell`, admin `AdminShell`). Flush rail, pin or peek (cookie), `Cmd/Ctrl+\`, phone tab bar, `NavProgress`, staggered rail prefetch, publishes `--app-page-h`. Never pads the page. Used by 2. |
-| `ShellRail`, `AccountRow` | `components/shell/shell-rail` | The rail's content (brand, nav, theme, bell, account row with sign-out). Rendered by `AppShell` in the desktop rail and the phone "More" sheet; apps do not import it. |
+| `ShellRail`, `AccountRow` | `components/shell/shell-rail` | The rail's content: brand, nav, then the footer - an optional assistant row (`AppShell` `assistant`) and ONE row: the account chip + the bell. Rendered by `AppShell` in the desktop rail and the phone "More" sheet; apps do not import it. |
+| `AccountMenu`, `AccountMenuIcon` | `components/account-menu` | The account chip (first name) that opens on hover: credits box (`account.credits`), Profile, Settings (`account.settingsHref`), the app's `links`, Appearance (Dark / Light / System), Sounds, Sign out. `AccountMenuIcon` = the round 40px icons beside it. |
+| `ChatStart` | `components/chat-start` | A new chat's start screen: mark, greeting, question, groups of tiles (make) and rows (ask); a group without a label is bare. The composer stays below it. |
+| `SplitButton` | `components/ui/split-button` | One action with 2-4 ways in (label, divider, chevron; the whole button opens the menu). In a page header give the `PageAction` an `options` array. |
+| `ChoiceChips` | `components/ui/choice-chips` | Pill filters; one menu on a phone or past 6 options. |
+| `FilterSheet` | `components/ui/filter-sheet` | Filters that do not fit a toolbar: a Filters button with a count opening a sheet of chip groups (live, Clear all / Done). Never a long dropdown. |
 | `lib/shell` | `lib/shell` | Nav types (`ShellNavItem`, `ShellNavSection`, `ShellUser`), `railPinnedFromCookie`, `railWidthCookie`, `railWidthFromCookie`, `RAIL_WIDTH`, `isUnder`, `activeHref`, `tabItems`. Plain module: the server layout reads the rail cookie with it. Used by 5. |
 | `MobileTabBar` | `components/ui/mobile-tab-bar` | The phone bottom bar; drawn by `AppShell` (4 `tab: true` items + More). Not imported by apps. |
 | `NavProgress` | `components/nav-progress` | 2px top bar from click to commit. One per shell; `AppShell` mounts it. |
 | `AppLink`, `markNavPending` | `components/app-link` | Every link (`next/link` is lint-banned). Prefetches the shell on intent. Call `markNavPending(href)` before a programmatic `router.push`. Used by 25. |
 | `useStaggeredPrefetch` | `components/use-staggered-prefetch` | The rail's prefetch queue (one every 350ms from idle). `AppShell` runs it; a second sidebar would call it too. |
 | `ThemeProvider`, `startThemeTransition` | `components/themeprovider` | next-themes + a View Transitions wipe. Mounted in each app's `providers.tsx`. Used by 3. |
-| `ThemeSwitch` | `components/theme-switch` | Sun / moon pill in the rail footer (inside `ShellRail`). |
+| `ThemeSwitch` | `components/theme-switch` | Sun / moon pill - no longer in the rail (Appearance lives in the account menu); kept for a settings page. |
 | `ResizableSplit` | `components/ui/resizable-split` | Two panes with a drag handle, stacked below `from`. For split editors. Unused by the apps today. |
 | `Docks` (`MagneticDockRow`) | `components/ui/docks` | A macOS-style magnifying dock. Unused by the apps today. |
 | `AnnouncementBar` | `components/ui/announcement-bar` | In-flow strip above a marketing nav. Unused by the apps today. |
@@ -157,7 +162,7 @@ Pick by size (`AGENTS.md` section 10, "Loading states"):
 | `Progress`, `ProgressSteps` | `components/ui/progress` | REAL progress only (bytes, done/total). Unused by the apps today. |
 | `toast`, `Toaster` | `components/ui/toast` | Sonner-compatible toasts (success, error, promise, undo, progress); one `Toaster` top-right in providers. Used by 26. |
 | `toastError` | `components/ui/toast-error` | Toast a failed `ActionResult` with an honest title and Retry only when retryable. Unused by the apps today. |
-| `EmptyState` | `components/ui/empty-state` | The one empty state (`bordered`, icon, title, description, action). Nothing to do shows nothing, not an empty panel. Used by 9. |
+| `EmptyState`, `SuggestionList` | `components/ui/empty-state` | The one empty state (`bordered`, icon, title, description, action, up to 4 `suggestions` - useful first moves). `SuggestionList` is the same list on its own, for a short list with room under it. Nothing to do shows nothing, not an empty panel. |
 | `InlineNote` | `components/ui/inline-note` | Icon + text note that wraps correctly (a failed refresh, a caveat). Used by 5. |
 | `DataError` | `components/ui/data-error` | Inline failed-load state with Retry from a failed result. Unused by the apps today. |
 | `Alert` | `components/ui/alert` | shadcn alert box. Unused by the apps today. |

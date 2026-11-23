@@ -28,7 +28,7 @@ const DropdownMenuSubTrigger = React.forwardRef<
 	<DropdownMenuPrimitive.SubTrigger
 		ref={ref}
 		className={cn(
-			"flex cursor-pointer select-none items-center gap-2 rounded-lg px-2 py-2 text-sm outline-none focus:bg-neutral-100 data-[state=open]:bg-neutral-100 dark:focus:bg-neutral-800 dark:data-[state=open]:bg-neutral-800 [&_svg]:size-4 [&_svg]:shrink-0",
+			"flex min-h-9 cursor-pointer select-none items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-neutral-700 outline-none focus:bg-neutral-950/[0.05] data-[state=open]:bg-neutral-950/[0.05] dark:text-neutral-200 dark:focus:bg-white/[0.07] dark:data-[state=open]:bg-white/[0.07] [&_svg:not([class*='size-'])]:size-4 [&_svg]:shrink-0 [&_svg]:text-neutral-500 dark:[&_svg]:text-neutral-400",
 			inset && "pl-8",
 			className
 		)}
@@ -48,7 +48,7 @@ const DropdownMenuSubContent = React.forwardRef<
 	<DropdownMenuPrimitive.SubContent
 		ref={ref}
 		className={cn(
-			"z-[80] min-w-[8rem] overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-lg",
+			"z-[80] min-w-[8rem] overflow-hidden rounded-2xl bg-neutral-50 p-1.5 text-popover-foreground ring-[0.5px] ring-neutral-950/10 shadow-[0_8px_24px_-8px_rgba(0,0,0,0.12)] dark:bg-neutral-900 dark:ring-white/10",
 			POPPER_MOTION,
 			POPPER_ORIGIN.dropdownMenu,
 			className
@@ -70,10 +70,10 @@ const DropdownMenuContent = React.forwardRef<
 			className={cn(
 				`
         z-[80] min-w-[10rem]
-        rounded-xl border
-        bg-white dark:bg-popover
-        border-neutral-200 dark:border-neutral-800
-        p-1 shadow-xl
+        rounded-2xl
+        bg-neutral-50 dark:bg-neutral-900
+        ring-[0.5px] ring-neutral-950/10 dark:ring-white/10
+        p-1.5 shadow-[0_8px_24px_-8px_rgba(0,0,0,0.12)] dark:shadow-[0_8px_24px_-8px_rgba(0,0,0,0.6)]
         `,
 				// This had no motion while its own SubContent did - the nested submenu animated
 				// and the menu that opened it did not.
@@ -100,13 +100,14 @@ const DropdownMenuItem = React.forwardRef<
 		data-variant={variant}
 		className={cn(
 			`
-				relative flex cursor-pointer select-none items-center gap-2 [&_svg]:size-4 [&_svg]:shrink-0
-				rounded-lg px-2 py-2 text-sm
+				relative flex min-h-9 cursor-pointer select-none items-center gap-3 outline-none
+				rounded-xl px-3 py-2 text-sm font-medium
+				[&_svg:not([class*='size-'])]:size-4 [&_svg]:shrink-0 [&_svg]:text-neutral-500 dark:[&_svg]:text-neutral-400
 
-				text-neutral-800 dark:text-neutral-200
+				text-neutral-700 dark:text-neutral-200
 				transition-colors
 
-				focus:bg-neutral-100 dark:focus:bg-neutral-800
+				focus:bg-neutral-950/[0.05] dark:focus:bg-white/[0.07]
 				data-[disabled]:pointer-events-none
 				data-[disabled]:opacity-50
       		`,
@@ -128,11 +129,11 @@ const DropdownMenuCheckboxItem = React.forwardRef<
 		checked={checked}
 		className={cn(
 			`
-				relative flex select-none items-center gap-2 [&_svg]:size-4 [&_svg]:shrink-0
-				rounded-lg py-2 pl-8 pr-2 text-sm
+				relative flex min-h-9 cursor-pointer select-none items-center gap-3 outline-none [&_svg]:size-4 [&_svg]:shrink-0
+				rounded-xl py-2 pl-8 pr-3 text-sm font-medium
 
-				text-neutral-800 dark:text-neutral-200
-				focus:bg-neutral-100 dark:focus:bg-neutral-800
+				text-neutral-700 dark:text-neutral-200
+				focus:bg-neutral-950/[0.05] dark:focus:bg-white/[0.07]
       		`,
 			className
 		)}
@@ -158,13 +159,13 @@ const DropdownMenuRadioItem = React.forwardRef<
 		ref={ref}
 		className={cn(
 			`
-				relative flex cursor-pointer select-none items-center gap-2 [&_svg]:size-4 [&_svg]:shrink-0
-				rounded-lg py-2 pl-8 pr-2 text-sm
+				relative flex min-h-9 cursor-pointer select-none items-center gap-3 outline-none [&_svg]:size-4 [&_svg]:shrink-0
+				rounded-xl py-2 pl-8 pr-3 text-sm font-medium
 
-				text-neutral-800 dark:text-neutral-200
+				text-neutral-700 dark:text-neutral-200
 				transition-colors
 
-				focus:bg-neutral-100 dark:focus:bg-neutral-800
+				focus:bg-neutral-950/[0.05] dark:focus:bg-white/[0.07]
 				data-[state=checked]:bg-neutral-200
 				dark:data-[state=checked]:bg-neutral-700
 

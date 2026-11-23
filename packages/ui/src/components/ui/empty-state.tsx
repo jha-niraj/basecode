@@ -1,6 +1,7 @@
 import { Button } from "./button"
 import { ReactNode } from "react"
 import { cn } from "../../lib/utils"
+import { AppLink } from "../app-link"
 import { IconStack, ICON_STACK_ICON_TONE, ICON_STACK_TONE, type IconStackTone } from "./icon-stack"
 
 // Scoped keyframes for the default illustration. Prefixed (gkes-) to avoid collisions;
@@ -77,6 +78,10 @@ interface EmptyStateProps {
     className?: string
     /** Set false to render without the card chrome (border/bg) - e.g. inside an existing card. */
     bordered?: boolean
+    /** Up to four useful first moves, listed under the action (each a link or a press). */
+    suggestions?: EmptySuggestion[]
+    /** The small label above them; "Suggestions" by default. */
+    suggestionsLabel?: string
 }
 
 export const EmptyState = ({
@@ -90,6 +95,8 @@ export const EmptyState = ({
     bordered = false,
     tone = "neutral",
     badge,
+    suggestions,
+    suggestionsLabel = "Suggestions",
 }: EmptyStateProps) => {
     return (
         <div
@@ -140,15 +147,76 @@ export const EmptyState = ({
             ) : (
                 <EmptyStateIllustration className="mb-3 sm:mb-4" />
             )}
-            <h3 className="text-base font-semibold text-neutral-900 dark:text-neutral-100 mb-1.5">{title}</h3>
+            <h3 className="text-base font-medium text-neutral-900 dark:text-neutral-100 mb-1">{title}</h3>
             <p className="text-sm text-neutral-500 dark:text-neutral-400 max-w-sm">{description}</p>
             {action ? (
-                <div className="mt-6">{action}</div>
+                <div className="mt-5">{action}</div>
             ) : actionLabel && onAction ? (
-                <Button onClick={onAction} variant="outline" className="mt-6">
+                <Button onClick={onAction} variant="outline" className="mt-5">
                     {actionLabel}
                 </Button>
             ) : null}
+            {suggestions?.length ? <EmptySuggestions label={suggestionsLabel} items={suggestions} /> : null}
         </div>
     )
+}
+
+/**
+ * Useful first moves under an empty state, so the page is never just "nothing here" (clean controls, 2026-11-23,
+ * after runable.com's Scheduled page): a hairline, a small muted label, then rows of icon + title + meta + one line.
+ * Left-aligned inside the centred state; at most four - more is a page of its own.
+ */
+function EmptySuggestions({ label, items }: { label: string; items: EmptySuggestion[] }) {
+    return <SuggestionList label={label} items={items} className="mt-8 max-w-xl border-t border-neutral-950/[0.06] pt-4 dark:border-white/[0.07]" />
+}
+
+/** The same list on its own - for a panel with a short list and room under it (Home's Today). */
+export function SuggestionList({ label = "Suggestions", items, className }: { label?: string; items: EmptySuggestion[]; className?: string }) {
+    return (
+        <div className={cn("w-full text-left", className)}>
+            <p className="px-3 pb-1 text-xs font-medium text-neutral-500 dark:text-neutral-400">{label}</p>
+            <ul className="flex flex-col">
+                {items.slice(0, 4).map((it) => {
+                    const body = (
+                        <>
+                            {it.icon ? (
+                                <span className="mt-0.5 shrink-0 text-neutral-500 dark:text-neutral-400 [&_svg]:size-4">{it.icon}</span>
+                            ) : null}
+                            <span className="min-w-0 flex-1">
+                                <span className="flex flex-wrap items-baseline gap-x-2">
+                                    <span className="text-sm font-medium text-neutral-900 dark:text-neutral-100">{it.title}</span>
+                                    {it.meta ? <span className="text-xs text-neutral-500 dark:text-neutral-400">{it.meta}</span> : null}
+                                </span>
+                                {it.description ? (
+                                    <span className="mt-0.5 block text-xs text-neutral-500 dark:text-neutral-400">{it.description}</span>
+                                ) : null}
+                            </span>
+                        </>
+                    )
+                    const row = "flex w-full items-start gap-3 rounded-xl px-3 py-2.5 text-left transition-colors hover:bg-neutral-950/[0.04] dark:hover:bg-white/[0.05]"
+                    return (
+                        <li key={it.title}>
+                            {it.href ? (
+                                <AppLink href={it.href} className={row}>{body}</AppLink>
+                            ) : (
+                                <Button type="button" variant="ghost" onClick={it.onSelect} className={cn(row, "h-auto justify-start font-normal")}>
+                                    {body}
+                                </Button>
+                            )}
+                        </li>
+                    )
+                })}
+            </ul>
+        </div>
+    )
+}
+
+export interface EmptySuggestion {
+    title: string
+    /** A short fact after the title - "Weekdays at 8:00 AM", "Class 8", "5 minutes". */
+    meta?: string
+    description?: string
+    icon?: ReactNode
+    href?: string
+    onSelect?: () => void
 }
